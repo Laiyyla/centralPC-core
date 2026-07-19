@@ -1,0 +1,15 @@
+{
+  "name": "@central-pc/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@central-pc/tsconfig": "workspace:*",
+    "tsx": "^4.0.0",
+    "typescript": "latest"
+  }
+}

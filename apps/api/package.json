@@ -1,0 +1,27 @@
+{
+  "name": "@central-pc/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@central-pc/database": "workspace:*",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/jwt": "^10.2.0",
+    "@trpc/server": "^11.18.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.10.0",
+    "superjson": "^2.2.6",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@central-pc/tsconfig": "workspace:*",
+    "tsx": "^4.0.0",
+    "@types/bcrypt": "^6.0.0",
+    "typescript": "latest"
+  }
+}
