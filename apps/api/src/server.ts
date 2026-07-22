@@ -31,11 +31,11 @@ async function main() {
     },
   });
 
-  const PORT = Number(process.env.SERVER_PORT) || 3000;
+  const PORT = Number(process.env.SERVER_PORT);
 
   await app.listen({ port: PORT, host: "0.0.0.0" });
 
-  app.log.info("Server running on port: ", PORT);
+  app.log.info(`Server running on port: ${PORT}`);
 }
 
 main().catch((e) => {
