@@ -1,3 +1,3 @@
 export {getDb} from "./db.js"
 export * from "./schema/index.js"
-export {eq} from "drizzle-orm"
+export {eq, like, ilike, notLike, and, or} from "drizzle-orm"
