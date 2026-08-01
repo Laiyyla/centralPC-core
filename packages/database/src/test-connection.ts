@@ -1,9 +1,8 @@
 import { getDb } from "./db.js";
 import { branchTable } from "./schema/index.js";
 
-
 async function test() {
-const db = getDb()
+  const db = getDb();
   try {
     const [newBranch] = await db
       .insert(branchTable)
