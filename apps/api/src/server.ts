@@ -10,7 +10,17 @@ import { createContext } from "./context.js";
 dotenv.config();
 
 const app = fastify({
-  logger: true,
+  logger: {
+    level: "info",
+    transport: {
+      target: "pino-pretty",
+      options: {
+        translateTime: "SYS:standard",
+        ignore: "pid,hostname",
+      },
+    },
+    redact: ["req.headers.authorization", "body.password"],
+  },
 });
 
 async function main() {
