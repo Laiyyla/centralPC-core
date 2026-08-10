@@ -277,6 +277,9 @@ importers:
 
   packages/database:
     dependencies:
+      bcrypt:
+        specifier: ^6.0.0
+        version: 6.0.0
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -293,6 +296,9 @@ importers:
       '@central-pc/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@types/bcrypt':
+        specifier: ^6.0.0
+        version: 6.0.0
       '@types/node':
         specifier: ^26.1.1
         version: 26.1.1

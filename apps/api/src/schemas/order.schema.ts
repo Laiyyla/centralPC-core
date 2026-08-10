@@ -57,5 +57,11 @@ export const getOrderByIdSchema = z.object({
   id: z.number(),
 });
 
+export const anularOrderSchema = z.object({
+  id: z.number(),
+  motivo: z.string().min(1, "El motivo de anulacion es obligatorio"),
+});
+
 export type ListOrdersInput = z.infer<typeof listOrdersSchema>;
 export type GetOrderByIdInput = z.infer<typeof getOrderByIdSchema>;
+export type anularOrdenInput = z.infer<typeof anularOrderSchema>;
