@@ -2,6 +2,19 @@ import { z } from "zod";
 
 export const itemTypeEnum = z.enum(["servicio", "producto", "combo"]);
 
+export const createComboSchema = z.object({
+  nombre: z.string().min(1).max(255),
+  precio_referencial: z.coerce.number().positive(),
+  componentes: z
+    .array(
+      z.object({
+        componente_item_id: z.number(),
+        cantidad: z.number().min(1),
+      }),
+    )
+    .min(2, "Un combo debe tener almenos 2 Componentes"),
+});
+
 export const createItemSchema = z.object({
   tipo: itemTypeEnum,
   nombre: z.string().min(1).max(255),
@@ -37,3 +50,4 @@ export type UpdateItemInput = z.infer<typeof updateItemSchema>;
 export type ListItemsInput = z.infer<typeof listItemsSchema>;
 export type GetByIdInput = z.infer<typeof getByIdSchema>;
 export type ToggleActiveInput = z.infer<typeof toggleActiveSchema>;
+export type CreateComboInput = z.infer<typeof createComboSchema>;

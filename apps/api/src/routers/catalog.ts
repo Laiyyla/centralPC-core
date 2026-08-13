@@ -6,8 +6,9 @@ import {
   listItemsSchema,
   getByIdSchema,
   toggleActiveSchema,
+  createComboSchema,
 } from "../schemas/catalog.schema.js";
-import { catalogTable, eq, and } from "@central-pc/database";
+import { catalogTable, eq, and, combo_components } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 
 export const catalogRouter = router({
@@ -88,5 +89,55 @@ export const catalogRouter = router({
         .where(eq(catalogTable.id, input.id))
         .returning();
       return toggledActive;
+    }),
+  createCombo: authedProcedure
+    .input(createComboSchema)
+    .mutation(async ({ ctx, input }) => {
+      const componentesMap = new Map<number, number>();
+
+      for (const c of input.componentes) {
+        const actual = componentesMap.get(c.componente_item_id) ?? 0;
+        componentesMap.set(c.componente_item_id, actual + c.cantidad);
+      }
+      const componentesConsolidados = Array.from(componentesMap.entries()).map(
+        ([componente_item_id, cantidad]) => ({ componente_item_id, cantidad }),
+      );
+      const result = await ctx.db.transaction(async (tx) => {
+        const [combo] = await tx
+          .insert(catalogTable)
+          .values({
+            nombre: input.nombre,
+            precio_ref: input.precio_referencial.toString(),
+            tipo_item: "combo",
+            isActive: true,
+          })
+          .returning();
+
+        for (const c of componentesConsolidados) {
+          const [item] = await tx
+            .select()
+            .from(catalogTable)
+            .where(eq(catalogTable.id, c.componente_item_id));
+          if (!item) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Componente con el ID ${c.componente_item_id} no encontrado en el catalogo`,
+            });
+          }
+          if (item.tipo_item === "combo") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `No se pueden anidar combos, el item "${item.nombre}" es un combo`,
+            });
+          }
+          await tx.insert(combo_components).values({
+            combo_id: combo.id,
+            comp_id: c.componente_item_id,
+            cantidad: c.cantidad,
+          });
+        }
+        return combo;
+      });
+      return result;
     }),
 });

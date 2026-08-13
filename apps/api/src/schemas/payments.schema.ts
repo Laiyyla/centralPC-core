@@ -4,7 +4,7 @@ export const metodoPagoEnum = z.enum([
   "efectivo",
   "yape",
   "plin",
-  "tansferencia",
+  "transferencia",
   "tarjeta",
 ]);
 
@@ -20,5 +20,10 @@ export const anularPagoSchema = z.object({
   motivo: z.string().min(1),
 });
 
+export const getPagoByIdSchema = z.object({
+  order_id: z.number(),
+});
+
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 export type AnularPagoInput = z.infer<typeof anularPagoSchema>;
+export type GetPagoById = z.infer<typeof getPagoByIdSchema>;
