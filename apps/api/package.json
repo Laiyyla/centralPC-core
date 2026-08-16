@@ -3,14 +3,24 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc"
   },
   "dependencies": {
     "@central-pc/database": "workspace:*",
+    "@central-pc/schemas": "workspace:*",
     "@fastify/cors": "^11.3.0",
     "@fastify/jwt": "^10.2.0",
+    "@tanstack/react-query": "^5.101.4",
+    "@trpc/client": "^11.18.0",
+    "@trpc/react-query": "^11.18.0",
     "@trpc/server": "^11.18.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",

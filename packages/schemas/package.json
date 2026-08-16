@@ -1,0 +1,19 @@
+{
+  "name": "@central-pc/schemas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "devDependencies": {
+    "@central-pc/tsconfig": "workspace:*",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}
