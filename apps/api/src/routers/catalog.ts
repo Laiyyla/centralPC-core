@@ -7,7 +7,7 @@ import {
   getByIdSchema,
   toggleActiveSchema,
   createComboSchema,
-} from "../schemas/catalog.schema.js";
+} from "@central-pc/schemas";
 import { catalogTable, eq, and, combo_components } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 

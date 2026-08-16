@@ -3,8 +3,8 @@ import { authedProcedure } from "../procedures/authed.js";
 import {
   createClientSchema,
   searchClientSchema,
-  getByIdSchema,
-} from "../schemas/clients.schema.js";
+  getClientByIdSchema,
+} from "@central-pc/schemas";
 import { clientTable, eq, or, ilike } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 
@@ -29,7 +29,7 @@ export const clientsRouter = router({
     return await ctx.db.select().from(clientTable);
   }),
   getById: authedProcedure
-    .input(getByIdSchema)
+    .input(getClientByIdSchema)
     .query(async ({ ctx, input }) => {
       const [client] = await ctx.db
         .select()
@@ -57,10 +57,10 @@ export const clientsRouter = router({
             ilike(clientTable.nombre, `%${input.query}%`),
             ilike(clientTable.telefono, `%${input.query}%`),
           ),
-        ).limit(input.limit)
+        )
+        .limit(input.limit);
 
-      return clients
-
+      return clients;
 
       // Tampoco se me ocurre el como hacer bien la consular AIUDAAA
       //CORRECCION: Al parecer la forma de hacer eso es mas verbal que estructural asi que it is what it is

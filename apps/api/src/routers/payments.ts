@@ -5,7 +5,7 @@ import {
   createPaymentSchema,
   anularPagoSchema,
   getPagoByIdSchema,
-} from "../schemas/payments.schema.js";
+} from "@central-pc/schemas";
 import { paymentTable, orderTable, eq, sql, and } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 

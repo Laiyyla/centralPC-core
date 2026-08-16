@@ -6,7 +6,7 @@ import {
   getOrderByIdSchema,
   listOrdersSchema,
   anularOrderSchema,
-} from "../schemas/order.schema.js";
+} from "@central-pc/schemas";
 import {
   orderTable,
   deviceTable,

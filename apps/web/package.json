@@ -1,15 +1,50 @@
 {
-  "name": "@central-pc/web",
-  "version": "1.0.0",
+  "name": "@centralpc/web",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
-    "build": "tsc"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@central-pc/api": "workspace:*",
+    "@hookform/resolvers": "^5.7.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-router": "^1.170.27",
+    "@trpc/client": "^11.18.0",
+    "@trpc/react-query": "^11.18.0",
+    "clsx": "^2.1.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-hook-form": "^7.85.0",
+    "superjson": "^2.2.6",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@central-pc/tsconfig": "workspace:*",
+    "@eslint/js": "^10.0.1",
+    "@rolldown/plugin-babel": "^0.2.3",
+    "@tanstack/router-plugin": "^1.168.30",
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
     "tsx": "^4.0.0",
-    "typescript": "latest"
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.65.0",
+    "vite": "^8.2.0"
   }
 }
