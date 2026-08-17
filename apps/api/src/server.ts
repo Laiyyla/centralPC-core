@@ -6,6 +6,7 @@ import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import { appRouter } from "./routers/_app.js";
 import { createContext } from "./context.js";
+import { pdfRoutes } from "./routes/pdf.routes.js";
 
 dotenv.config();
 
@@ -40,6 +41,8 @@ async function main() {
       transformer: SuperJSON,
     },
   });
+
+  await app.register(pdfRoutes);
 
   const PORT = Number(process.env.SERVER_PORT);
 

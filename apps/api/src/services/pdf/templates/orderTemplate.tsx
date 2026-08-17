@@ -7,7 +7,6 @@ import {
   Font,
 } from "@react-pdf/renderer";
 
-// Estilos del documento usando Flexbox nativo
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -104,6 +103,12 @@ export const OrderPdfTemplate: React.FC<OrderPdfProps> = ({ order }) => {
   const sucursal = order.branch;
   const cliente = order.client;
 
+  const formatCorrelativo = (serie?: string, correlativo?: number) => {
+    const prefijo = serie || "B001";
+    const numero = String(correlativo || 0).padStart(6, "0");
+    return `${prefijo}-${numero}`;
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -116,14 +121,11 @@ export const OrderPdfTemplate: React.FC<OrderPdfProps> = ({ order }) => {
             <Text style={styles.textRow}>
               RUC: {sucursal?.ruc_empresa || "N/A"}
             </Text>
-            <Text style={styles.textRow}>
-              Serie: {sucursal?.serie || "B001"}
-            </Text>
           </View>
           <View>
             <Text style={styles.orderTitle}>ÓRDEN DE SERVICIO</Text>
             <Text style={{ ...styles.textRow, textAlign: "right" }}>
-              N° {order.correlativo}
+              N° {formatCorrelativo(sucursal?.serie, order.correlativo)}
             </Text>
             <Text style={{ ...styles.textRow, textAlign: "right" }}>
               Fecha: {new Date(order.fecha_emision).toLocaleDateString()}
