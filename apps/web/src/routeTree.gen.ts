@@ -12,6 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedCatalogIndexRouteImport } from './routes/_authed/catalog/index'
+import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
+import { Route as AuthedOrdersIndexRouteImport } from './routes/_authed/orders/index'
+import { Route as AuthedOrdersOrderIdRouteImport } from './routes/_authed/orders/$orderId'
+import { Route as AuthedOrdersNewRouteImport } from './routes/_authed/orders/new'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -27,29 +32,94 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedCatalogIndexRoute = AuthedCatalogIndexRouteImport.update({
+  id: '/catalog/',
+  path: '/catalog/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedClientsIndexRoute = AuthedClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedOrdersIndexRoute = AuthedOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedOrdersOrderIdRoute = AuthedOrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedOrdersNewRoute = AuthedOrdersNewRouteImport.update({
+  id: '/orders/new',
+  path: '/orders/new',
+  getParentRoute: () => AuthedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/orders/$orderId': typeof AuthedOrdersOrderIdRoute
+  '/orders/new': typeof AuthedOrdersNewRoute
+  '/catalog/': typeof AuthedCatalogIndexRoute
+  '/clients/': typeof AuthedClientsIndexRoute
+  '/orders/': typeof AuthedOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/orders/$orderId': typeof AuthedOrdersOrderIdRoute
+  '/orders/new': typeof AuthedOrdersNewRoute
+  '/catalog': typeof AuthedCatalogIndexRoute
+  '/clients': typeof AuthedClientsIndexRoute
+  '/orders': typeof AuthedOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/orders/$orderId': typeof AuthedOrdersOrderIdRoute
+  '/_authed/orders/new': typeof AuthedOrdersNewRoute
+  '/_authed/catalog/': typeof AuthedCatalogIndexRoute
+  '/_authed/clients/': typeof AuthedClientsIndexRoute
+  '/_authed/orders/': typeof AuthedOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/orders/$orderId'
+    | '/orders/new'
+    | '/catalog/'
+    | '/clients/'
+    | '/orders/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard'
-  id: '__root__' | '/_authed' | '/login' | '/_authed/dashboard'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/orders/$orderId'
+    | '/orders/new'
+    | '/catalog'
+    | '/clients'
+    | '/orders'
+  id:
+    | '__root__'
+    | '/_authed'
+    | '/login'
+    | '/_authed/dashboard'
+    | '/_authed/orders/$orderId'
+    | '/_authed/orders/new'
+    | '/_authed/catalog/'
+    | '/_authed/clients/'
+    | '/_authed/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -80,15 +150,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/catalog/': {
+      id: '/_authed/catalog/'
+      path: '/catalog'
+      fullPath: '/catalog/'
+      preLoaderRoute: typeof AuthedCatalogIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/clients/': {
+      id: '/_authed/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthedClientsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/orders/': {
+      id: '/_authed/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof AuthedOrdersIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/orders/$orderId': {
+      id: '/_authed/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof AuthedOrdersOrderIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/orders/new': {
+      id: '/_authed/orders/new'
+      path: '/orders/new'
+      fullPath: '/orders/new'
+      preLoaderRoute: typeof AuthedOrdersNewRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedOrdersOrderIdRoute: typeof AuthedOrdersOrderIdRoute
+  AuthedOrdersNewRoute: typeof AuthedOrdersNewRoute
+  AuthedCatalogIndexRoute: typeof AuthedCatalogIndexRoute
+  AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
+  AuthedOrdersIndexRoute: typeof AuthedOrdersIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedOrdersOrderIdRoute: AuthedOrdersOrderIdRoute,
+  AuthedOrdersNewRoute: AuthedOrdersNewRoute,
+  AuthedCatalogIndexRoute: AuthedCatalogIndexRoute,
+  AuthedClientsIndexRoute: AuthedClientsIndexRoute,
+  AuthedOrdersIndexRoute: AuthedOrdersIndexRoute,
 }
 
 const AuthedRouteWithChildren =
