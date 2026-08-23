@@ -50,6 +50,8 @@ export type {
   ListOrdersInput,
   GetOrderByIdInput,
   anularOrdenInput,
+  EquipoBase,
+  TipoEquipo,
 } from "./order.schema.js";
 
 // Payments Exports

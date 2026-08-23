@@ -62,6 +62,13 @@ export const anularOrderSchema = z.object({
   motivo: z.string().min(1, "El motivo de anulacion es obligatorio"),
 });
 
+const equipoBaseSchema = equipoSchema.pick({
+  tipo_equipo: true,
+  descripcion: true,
+});
+
 export type ListOrdersInput = z.infer<typeof listOrdersSchema>;
 export type GetOrderByIdInput = z.infer<typeof getOrderByIdSchema>;
 export type anularOrdenInput = z.infer<typeof anularOrderSchema>;
+export type EquipoBase = z.infer<typeof equipoBaseSchema>;
+export type TipoEquipo = z.infer<typeof tipoEquipoEnum>;
