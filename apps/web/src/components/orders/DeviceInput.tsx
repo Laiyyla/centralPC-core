@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CatalogItemSelector } from "./CatalogItemSelector";
 import { tipoEquipoEnum } from "@central-pc/schemas";
 import type { EquipoBase, TipoEquipo } from "@central-pc/schemas";
 
@@ -8,9 +9,14 @@ type DeviceInputProps = {
 
 export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
   const [equipos, setEquipos] = useState<EquipoBase[]>([]);
-  const [nuevoEquipo, setNuevoEquipo] = useState({
+  const [nuevoEquipo, setNuevoEquipo] = useState<{
+    tipo_equipo: TipoEquipo;
+    descripcion: string;
+    detalle: { item_id: number; cantidad: number; precio_unitario: number }[];
+  }>({
     tipo_equipo: tipoEquipoEnum.options[0],
     descripcion: "",
+    detalle: [],
   });
 
   function agregarEquipo() {
@@ -20,7 +26,11 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
     const equipoAdded = [...equipos, nuevoEquipo];
     setEquipos(equipoAdded);
     onEquiposChange(equipoAdded);
-    setNuevoEquipo({ tipo_equipo: tipoEquipoEnum.options[0], descripcion: "" });
+    setNuevoEquipo({
+      tipo_equipo: tipoEquipoEnum.options[0],
+      descripcion: "",
+      detalle: [],
+    });
   }
   function quitarEquipo(index: number) {
     const equipoFiltrados = equipos.filter((_, i) => i !== index);
@@ -52,6 +62,11 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
           }
           placeholder="Descripcion del Equipo"
         ></input>
+        <CatalogItemSelector
+          onDetalleChange={(items) =>
+            setNuevoEquipo({ ...nuevoEquipo, detalle: items })
+          }
+        ></CatalogItemSelector>
         <button type="button" onClick={() => agregarEquipo()}>
           Agregar Equipo
         </button>
@@ -61,6 +76,11 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
           <div key={index}>
             <h2>{equipo.tipo_equipo}</h2>
             <h4>{equipo.descripcion}</h4>
+            {equipo.detalle.map((d, i) => (
+              <p key={i}>
+                Item {d.item_id} - x{d.cantidad} - S/.{d.precio_unitario}
+              </p>
+            ))}
             <button onClick={() => quitarEquipo(index)}>Quitar</button>
           </div>
         ))}

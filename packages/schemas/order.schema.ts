@@ -65,6 +65,7 @@ export const anularOrderSchema = z.object({
 const equipoBaseSchema = equipoSchema.pick({
   tipo_equipo: true,
   descripcion: true,
+  detalle: true,
 });
 
 export type ListOrdersInput = z.infer<typeof listOrdersSchema>;

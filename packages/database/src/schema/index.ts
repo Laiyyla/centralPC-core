@@ -7,3 +7,5 @@ export * from "./order_details.js";
 export * from "./orders.js";
 export * from "./users.js";
 export * from "./payments.js";
+export * from "./relations.js";
+

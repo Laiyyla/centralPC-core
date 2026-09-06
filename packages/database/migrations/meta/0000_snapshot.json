@@ -1,5 +1,5 @@
 {
-  "id": "bf84d314-53bf-4afc-b47d-6528a012efa2",
+  "id": "b6eeaa50-4864-4990-b35f-a35f21b89601",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -32,6 +32,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "ultimo_correlativo": {
+          "name": "ultimo_correlativo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "isActive": {
           "name": "isActive",
           "type": "boolean",
@@ -40,7 +47,23 @@
           "default": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_branches_is_active": {
+          "name": "idx_branches_is_active",
+          "columns": [
+            {
+              "expression": "isActive",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
@@ -93,7 +116,38 @@
           "default": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_catalog_tipo_item": {
+          "name": "idx_catalog_tipo_item",
+          "columns": [
+            {
+              "expression": "tipo_item",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_catalog_is_active": {
+          "name": "idx_catalog_is_active",
+          "columns": [
+            {
+              "expression": "isActive",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -136,7 +190,53 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_clients_telefono": {
+          "name": "idx_clients_telefono",
+          "columns": [
+            {
+              "expression": "telefono",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_clients_dni": {
+          "name": "idx_clients_dni",
+          "columns": [
+            {
+              "expression": "dni",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_clients_ruc": {
+          "name": "idx_clients_ruc",
+          "columns": [
+            {
+              "expression": "ruc",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -173,7 +273,59 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_combo_comp_combo_id": {
+          "name": "idx_combo_comp_combo_id",
+          "columns": [
+            {
+              "expression": "combo_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_combo_comp_comp_id": {
+          "name": "idx_combo_comp_comp_id",
+          "columns": [
+            {
+              "expression": "comp_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "unique_combo_component": {
+          "name": "unique_combo_component",
+          "columns": [
+            {
+              "expression": "combo_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "comp_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "combo_comp_combo_id_catalog_items_id_fk": {
           "name": "combo_comp_combo_id_catalog_items_id_fk",
@@ -185,7 +337,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "combo_comp_comp_id_catalog_items_id_fk": {
@@ -198,7 +350,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -244,7 +396,38 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_devices_order_id": {
+          "name": "idx_devices_order_id",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_devices_tipo_equipo": {
+          "name": "idx_devices_tipo_equipo",
+          "columns": [
+            {
+              "expression": "tipo_equipo",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "devices_order_id_orders_id_fk": {
           "name": "devices_order_id_orders_id_fk",
@@ -256,7 +439,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -319,7 +502,53 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_order_detail_order_id": {
+          "name": "idx_order_detail_order_id",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_order_detail_equipo_id": {
+          "name": "idx_order_detail_equipo_id",
+          "columns": [
+            {
+              "expression": "equipo_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_order_detail_item_id": {
+          "name": "idx_order_detail_item_id",
+          "columns": [
+            {
+              "expression": "item_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "order_detail_order_id_orders_id_fk": {
           "name": "order_detail_order_id_orders_id_fk",
@@ -331,7 +560,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "order_detail_equipo_id_devices_id_fk": {
@@ -446,7 +675,104 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_orders_cliente_id": {
+          "name": "idx_orders_cliente_id",
+          "columns": [
+            {
+              "expression": "cliente_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_orders_fecha_emision": {
+          "name": "idx_orders_fecha_emision",
+          "columns": [
+            {
+              "expression": "fecha_emision",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_orders_estado": {
+          "name": "idx_orders_estado",
+          "columns": [
+            {
+              "expression": "estado",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_orders_sucursal_id": {
+          "name": "idx_orders_sucursal_id",
+          "columns": [
+            {
+              "expression": "sucursal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_orders_user_id": {
+          "name": "idx_orders_user_id",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "unique_sucursal_correlativo": {
+          "name": "unique_sucursal_correlativo",
+          "columns": [
+            {
+              "expression": "sucursal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "correlativo",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "orders_sucursal_id_branches_id_fk": {
           "name": "orders_sucursal_id_branches_id_fk",
@@ -550,7 +876,23 @@
           "default": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_users_is_active": {
+          "name": "idx_users_is_active",
+          "columns": [
+            {
+              "expression": "isActive",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
@@ -562,6 +904,165 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.payments": {
+      "name": "payments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metodo": {
+          "name": "metodo",
+          "type": "metodo_pago",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "monto": {
+          "name": "monto",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fecha_pago": {
+          "name": "fecha_pago",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "estado": {
+          "name": "estado",
+          "type": "estado_pago",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ACTIVO'"
+        },
+        "fecha_anulacion": {
+          "name": "fecha_anulacion",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "usuario_anulacion_id": {
+          "name": "usuario_anulacion_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "motivo_anulacion": {
+          "name": "motivo_anulacion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_payments_order_id": {
+          "name": "idx_payments_order_id",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_payments_fecha_pago": {
+          "name": "idx_payments_fecha_pago",
+          "columns": [
+            {
+              "expression": "fecha_pago",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_payments_estado": {
+          "name": "idx_payments_estado",
+          "columns": [
+            {
+              "expression": "estado",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_payments_usuario_anulacion_id": {
+          "name": "idx_payments_usuario_anulacion_id",
+          "columns": [
+            {
+              "expression": "usuario_anulacion_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "payments_order_id_orders_id_fk": {
+          "name": "payments_order_id_orders_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "orders",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payments_usuario_anulacion_id_users_id_fk": {
+          "name": "payments_usuario_anulacion_id_users_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "users",
+          "columnsFrom": [
+            "usuario_anulacion_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -603,6 +1104,25 @@
         "admin",
         "tecnico",
         "cajero"
+      ]
+    },
+    "public.estado_pago": {
+      "name": "estado_pago",
+      "schema": "public",
+      "values": [
+        "ACTIVO",
+        "ANULADO"
+      ]
+    },
+    "public.metodo_pago": {
+      "name": "metodo_pago",
+      "schema": "public",
+      "values": [
+        "efectivo",
+        "yape",
+        "plin",
+        "tarjeta",
+        "transferencia"
       ]
     }
   },
