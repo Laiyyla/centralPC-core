@@ -4,6 +4,7 @@ import {
   varchar,
   boolean,
   integer,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const branchTable = pgTable("branches", {
@@ -13,4 +14,7 @@ export const branchTable = pgTable("branches", {
   RUC: varchar({ length: 11 }).notNull(),
   ultimo_correlativo: integer().notNull().default(0),
   isActive: boolean().notNull().default(true),
-});
+}, (table) => [
+  index("idx_branches_is_active").on(table.isActive),
+]);
+

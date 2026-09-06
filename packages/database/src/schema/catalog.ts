@@ -5,6 +5,7 @@ import {
   decimal,
   pgEnum,
   boolean,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const catalogEnum = pgEnum("item_type", [
@@ -22,4 +23,8 @@ export const catalogTable = pgTable("catalog_items", {
     scale: 2,
   }).notNull(),
   isActive: boolean().notNull().default(true),
-});
+}, (table) => [
+  index("idx_catalog_tipo_item").on(table.tipo_item),
+  index("idx_catalog_is_active").on(table.isActive),
+]);
+
