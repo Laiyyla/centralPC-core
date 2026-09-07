@@ -18,7 +18,7 @@ export const authRouter = router({
 
       if (existingUser.length > 0) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
+          code: "CONFLICT",
           message: "El nombre de usuario ya esta en uso",
         });
       }
@@ -71,7 +71,7 @@ export const authRouter = router({
 
     if (!isValid) {
       throw new TRPCError({
-        code: "CONFLICT",
+        code: "UNAUTHORIZED",
         message: "Credenciales Invalidas",
       });
     }

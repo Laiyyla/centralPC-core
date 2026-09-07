@@ -3,27 +3,38 @@ import { generateOrderPdfStream } from "../services/pdf/order-pdf.service.js";
 
 export async function pdfRoutes(fastify: FastifyInstance) {
   fastify.get("/api/orders/:id/pdf", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const queryToken = (req.query as { token?: string })?.token;
+
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.substring(7)
+      : queryToken;
+
+    if (!token) {
+      return res
+        .status(401)
+        .send({ error: "No autorizado: Inicia sesion Porfavor" });
+    }
+
     try {
-      const authHeader = req.headers.authorization;
-      const queryToken = (req.query as { token?: string }).token;
-
-      const token = authHeader?.startsWith("Bearer ")
-        ? authHeader.substring(7)
-        : queryToken;
-
-      if (!token) {
-        res
-          .status(401)
-          .send({ error: "No autorizado: Inicia sesion Porfavor" });
-      }
-
       await fastify.jwt.verify(token);
+    } catch {
+      return res
+        .status(401)
+        .send({ error: "No autorizado: Token invalido o expirado" });
+    }
 
-      const { id } = req.params as { id: number };
-      const { stream, correlativo } = await generateOrderPdfStream(id);
+    const { id } = req.params as { id: string };
+    const orderId = Number(id);
+    if (isNaN(orderId)) {
+      return res.status(400).send({ error: "ID de orden invalido" });
+    }
 
-      res.raw.setHeader("Content-Type", "application/pdf");
-      res.raw.setHeader(
+    try {
+      const { stream, correlativo } = await generateOrderPdfStream(orderId);
+
+      res.header("Content-Type", "application/pdf");
+      res.header(
         "Content-Disposition",
         `inline; filename="orden-${correlativo}.pdf"`,
       );

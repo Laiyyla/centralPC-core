@@ -49,20 +49,18 @@ export const clientsRouter = router({
   search: authedProcedure
     .input(searchClientSchema)
     .query(async ({ ctx, input }) => {
+      const sanitizedQuery = input.query.replace(/[%_\\]/g, "\\$&");
       const clients = await ctx.db
         .select()
         .from(clientTable)
         .where(
           or(
-            ilike(clientTable.nombre, `%${input.query}%`),
-            ilike(clientTable.telefono, `%${input.query}%`),
+            ilike(clientTable.nombre, `%${sanitizedQuery}%`),
+            ilike(clientTable.telefono, `%${sanitizedQuery}%`),
           ),
         )
         .limit(input.limit);
 
       return clients;
-
-      // Tampoco se me ocurre el como hacer bien la consular AIUDAAA
-      //CORRECCION: Al parecer la forma de hacer eso es mas verbal que estructural asi que it is what it is
     }),
 });

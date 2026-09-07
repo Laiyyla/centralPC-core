@@ -42,10 +42,15 @@ export const paymentsRouter = router({
       const totalPagado = Number(pagosExistentes[0]?.totalPagado ?? 0);
       const nuevoTotal = totalPagado + input.monto;
 
-      if (nuevoTotal > Number(orden.total)) {
+      const nuevoTotalCents = Math.round(nuevoTotal * 100);
+      const totalOrdenCents = Math.round(Number(orden.total) * 100);
+
+      if (nuevoTotalCents > totalOrdenCents) {
+        const restanteCents = totalOrdenCents - Math.round(totalPagado * 100);
+        const restante = Math.max(0, restanteCents / 100);
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `El pago excede el total de la orden. El restante por pagar es: S/.${(Number(orden.total) - totalPagado).toFixed(2)}`,
+          message: `El pago excede el total de la orden. El restante por pagar es: S/.${restante.toFixed(2)}`,
         });
       }
 
