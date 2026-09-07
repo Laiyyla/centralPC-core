@@ -19,6 +19,7 @@ import {
   lte,
   and,
   desc,
+  inArray,
 } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 
@@ -33,7 +34,51 @@ export const ordersRouter = router({
           message: "Sucursal no configurada",
         });
       }
+
+      // Recopilar todos los IDs del catálogo requeridos
+      const catalogItemIds: number[] = [];
+      for (const equipo of input.equipos) {
+        for (const item of equipo.detalle) {
+          if (item.item_id) catalogItemIds.push(item.item_id);
+        }
+      }
+      if (input.detalle_suelto) {
+        for (const item of input.detalle_suelto) {
+          if (item.item_id) catalogItemIds.push(item.item_id);
+        }
+      }
+
       const result = await ctx.db.transaction(async (tx) => {
+        // Pre-cargar todos los ítems del catálogo en una sola consulta
+        const catalogItems =
+          catalogItemIds.length > 0
+            ? await tx
+                .select()
+                .from(catalogTable)
+                .where(inArray(catalogTable.id, catalogItemIds))
+            : [];
+
+        const catalogMap = new Map(
+          catalogItems.map((item) => [item.id, item]),
+        );
+
+        // Validar existencia y estado activo de todos los ítems solicitados
+        for (const itemId of catalogItemIds) {
+          const catalogItem = catalogMap.get(itemId);
+          if (!catalogItem) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `El item con ID ${itemId} no existe en el Catalogo`,
+            });
+          }
+          if (!catalogItem.isActive) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `El item ${catalogItem.nombre} esta desactivado del catalogo`,
+            });
+          }
+        }
+
         const [branch] = await tx
           .select()
           .from(branchTable)
@@ -87,6 +132,7 @@ export const ordersRouter = router({
             observaciones: input.observaciones ?? null,
           })
           .returning();
+
         for (const equipo of input.equipos) {
           const [device] = await tx
             .insert(deviceTable)
@@ -97,32 +143,19 @@ export const ordersRouter = router({
               observaciones: equipo.observaciones ?? null,
             })
             .returning();
-          for (const item of equipo.detalle) {
+
+          const deviceDetailsToInsert = equipo.detalle.map((item) => {
             let nombreSnapshot =
               item.nombre_personalizado ?? "Item personalizado";
             let itemIdFinal: number | null = null;
 
             if (item.item_id) {
-              const [catalogItem] = await tx
-                .select()
-                .from(catalogTable)
-                .where(eq(catalogTable.id, item.item_id));
-              if (!catalogItem) {
-                throw new TRPCError({
-                  code: "BAD_REQUEST",
-                  message: `El item con ID ${item.item_id} no existe en el Catalogo`,
-                });
-              }
-              if (!catalogItem.isActive) {
-                throw new TRPCError({
-                  code: "BAD_REQUEST",
-                  message: `El item ${catalogItem.nombre} esta desactivado del catalogo`,
-                });
-              }
-              ((nombreSnapshot = catalogItem.nombre),
-                (itemIdFinal = catalogItem.id));
+              const catalogItem = catalogMap.get(item.item_id)!;
+              nombreSnapshot = catalogItem.nombre;
+              itemIdFinal = catalogItem.id;
             }
-            await tx.insert(orderDetailTable).values({
+
+            return {
               order_id: orden.id,
               equipo_id: device.id,
               item_id: itemIdFinal,
@@ -130,36 +163,27 @@ export const ordersRouter = router({
               precio_unit_snap: item.precio_unitario.toString(),
               cantidad: item.cantidad,
               subtotal: (item.precio_unitario * item.cantidad).toString(),
-            });
+            };
+          });
+
+          if (deviceDetailsToInsert.length > 0) {
+            await tx.insert(orderDetailTable).values(deviceDetailsToInsert);
           }
         }
-        if (input.detalle_suelto) {
-          for (const item of input.detalle_suelto) {
+
+        if (input.detalle_suelto && input.detalle_suelto.length > 0) {
+          const looseDetailsToInsert = input.detalle_suelto.map((item) => {
             let nombreSnapshot =
               item.nombre_personalizado ?? "Item personalizado";
             let itemIdFinal: number | null = null;
 
             if (item.item_id) {
-              const [catalogItem] = await tx
-                .select()
-                .from(catalogTable)
-                .where(eq(catalogTable.id, item.item_id));
-              if (!catalogItem) {
-                throw new TRPCError({
-                  code: "BAD_REQUEST",
-                  message: `El item con el ID ${item.item_id} no existe en el catalogo`,
-                });
-              }
-              if (!catalogItem.isActive) {
-                throw new TRPCError({
-                  code: "BAD_REQUEST",
-                  message: `El item: ${catalogItem.nombre} esta desactivado del Catalogo`,
-                });
-              }
-              ((nombreSnapshot = catalogItem.nombre),
-                (itemIdFinal = catalogItem.id));
+              const catalogItem = catalogMap.get(item.item_id)!;
+              nombreSnapshot = catalogItem.nombre;
+              itemIdFinal = catalogItem.id;
             }
-            await tx.insert(orderDetailTable).values({
+
+            return {
               order_id: orden.id,
               equipo_id: null,
               item_id: itemIdFinal,
@@ -167,8 +191,10 @@ export const ordersRouter = router({
               precio_unit_snap: item.precio_unitario.toString(),
               cantidad: item.cantidad,
               subtotal: (item.precio_unitario * item.cantidad).toString(),
-            });
-          }
+            };
+          });
+
+          await tx.insert(orderDetailTable).values(looseDetailsToInsert);
         }
         return orden;
       });
@@ -193,22 +219,24 @@ export const ordersRouter = router({
       if (fecha_hasta) {
         conditions.push(lte(orderTable.fecha_emision, new Date(fecha_hasta)));
       }
-      if (conditions.length > 0) {
-        return await ctx.db
-          .select()
-          .from(orderTable)
-          .where(and(...conditions))
-          .orderBy(desc(orderTable.fecha_emision))
-          .limit(limit)
-          .offset(offset);
-      } else {
-        return await ctx.db
-          .select()
-          .from(orderTable)
-          .orderBy(desc(orderTable.fecha_emision))
-          .limit(limit)
-          .offset(offset);
-      }
+      return await ctx.db
+        .select({
+          id: orderTable.id,
+          correlativo: orderTable.correlativo,
+          estado: orderTable.estado,
+          fecha_emision: orderTable.fecha_emision,
+          total: orderTable.total,
+          cliente: {
+            nombre: clientTable.nombre,
+            telefono: clientTable.telefono,
+          },
+        })
+        .from(orderTable)
+        .leftJoin(clientTable, eq(orderTable.cliente_id, clientTable.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(orderTable.fecha_emision))
+        .limit(limit)
+        .offset(offset);
     }),
   getById: authedProcedure
     .input(getOrderByIdSchema)

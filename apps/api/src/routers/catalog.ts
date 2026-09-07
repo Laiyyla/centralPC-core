@@ -8,7 +8,7 @@ import {
   toggleActiveSchema,
   createComboSchema,
 } from "@central-pc/schemas";
-import { catalogTable, eq, and, combo_components } from "@central-pc/database";
+import { catalogTable, eq, and, combo_components, inArray } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 
 export const catalogRouter = router({
@@ -47,7 +47,6 @@ export const catalogRouter = router({
       return await ctx.db.select().from(catalogTable);
     }
   }),
-  //No tengo idea de como hacer esa consulta dinamica :C
   getById: authedProcedure
     .input(getByIdSchema)
     .query(async ({ ctx, input }) => {
@@ -66,11 +65,11 @@ export const catalogRouter = router({
   update: authedProcedure
     .input(updateItemSchema)
     .mutation(async ({ ctx, input }) => {
-      const updateData: Partial<Omit<typeof input, "id">> = {};
+      const updateData: Record<string, any> = {};
       if (input.nombre !== undefined) updateData.nombre = input.nombre;
       if (input.precio_referencial !== undefined)
-        updateData.precio_referencial = input.precio_referencial;
-      if (input.activo !== undefined) updateData.activo = input.activo;
+        updateData.precio_ref = input.precio_referencial;
+      if (input.activo !== undefined) updateData.isActive = input.activo;
       const [updatedItem] = await ctx.db
         .update(catalogTable)
         .set(updateData)
@@ -102,22 +101,23 @@ export const catalogRouter = router({
       const componentesConsolidados = Array.from(componentesMap.entries()).map(
         ([componente_item_id, cantidad]) => ({ componente_item_id, cantidad }),
       );
+      const compIds = componentesConsolidados.map((c) => c.componente_item_id);
+
       const result = await ctx.db.transaction(async (tx) => {
-        const [combo] = await tx
-          .insert(catalogTable)
-          .values({
-            nombre: input.nombre,
-            precio_ref: input.precio_referencial.toString(),
-            tipo_item: "combo",
-            isActive: true,
-          })
-          .returning();
+        const catalogItems =
+          compIds.length > 0
+            ? await tx
+                .select()
+                .from(catalogTable)
+                .where(inArray(catalogTable.id, compIds))
+            : [];
+
+        const catalogItemsMap = new Map(
+          catalogItems.map((item) => [item.id, item]),
+        );
 
         for (const c of componentesConsolidados) {
-          const [item] = await tx
-            .select()
-            .from(catalogTable)
-            .where(eq(catalogTable.id, c.componente_item_id));
+          const item = catalogItemsMap.get(c.componente_item_id);
           if (!item) {
             throw new TRPCError({
               code: "NOT_FOUND",
@@ -130,12 +130,28 @@ export const catalogRouter = router({
               message: `No se pueden anidar combos, el item "${item.nombre}" es un combo`,
             });
           }
-          await tx.insert(combo_components).values({
-            combo_id: combo.id,
-            comp_id: c.componente_item_id,
-            cantidad: c.cantidad,
-          });
         }
+
+        const [combo] = await tx
+          .insert(catalogTable)
+          .values({
+            nombre: input.nombre,
+            precio_ref: input.precio_referencial.toString(),
+            tipo_item: "combo",
+            isActive: true,
+          })
+          .returning();
+
+        if (componentesConsolidados.length > 0) {
+          await tx.insert(combo_components).values(
+            componentesConsolidados.map((c) => ({
+              combo_id: combo.id,
+              comp_id: c.componente_item_id,
+              cantidad: c.cantidad,
+            })),
+          );
+        }
+
         return combo;
       });
       return result;
