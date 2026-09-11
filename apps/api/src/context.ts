@@ -1,4 +1,5 @@
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
+import "@fastify/jwt";
 
 import { getDb } from "@central-pc/database";
 import type { roleEnum } from "@central-pc/database";
