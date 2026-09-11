@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { trpc } from "../../trpc/client";
-import { createClientSchema, CreateClientInput } from "@central-pc/schemas";
+import { trpc } from "@/trpc/client";
+import { createClientSchema, type CreateClientInput } from "@central-pc/schemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -21,9 +21,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   });
 
   const { data: resultados } = trpc.clients.search.useQuery(
-    {
-      query,
-    },
+    { query },
     { enabled: query.length >= 2 },
   );
 
@@ -36,6 +34,10 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
       });
       onClientSelect(data.id);
       setModoCrear(false);
+      createClientForm.reset();
+    },
+    onError: (error) => {
+      console.error("Error creando cliente:", error.message);
     },
   });
 
@@ -48,6 +50,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
     onClientSelect(cliente.id);
     setQuery("");
   }
+
   function onSubmit(values: CreateClientInput) {
     crearCliente.mutate(values);
   }
@@ -55,54 +58,75 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   if (clienteSeleccionado !== null) {
     return (
       <div>
-        <p>Cliente: {clienteSeleccionado.nombre}</p>
+        <p>Cliente seleccionado: <strong>{clienteSeleccionado.nombre}</strong> ({clienteSeleccionado.telefono})</p>
         <button
+          type="button"
           onClick={() => {
             setClienteSeleccionado(null);
             onClientSelect(null);
           }}
         >
-          Cambiar
+          Cambiar Cliente
         </button>
       </div>
     );
   }
 
-  if (modoCrear === true) {
+  if (modoCrear) {
     return (
       <form onSubmit={createClientForm.handleSubmit(onSubmit)}>
+        <h4>Crear Nuevo Cliente</h4>
         <input
           {...createClientForm.register("nombre")}
-          placeholder="Nombre de Cliente"
+          placeholder="Nombre completo"
         />
+        {createClientForm.formState.errors.nombre && (
+          <p style={{ color: "red" }}>{createClientForm.formState.errors.nombre.message}</p>
+        )}
         <input
           {...createClientForm.register("telefono")}
-          placeholder="Telefono de Cliente"
+          placeholder="Teléfono"
         />
-        <button type="submit">Guardar</button>
+        {createClientForm.formState.errors.telefono && (
+          <p style={{ color: "red" }}>{createClientForm.formState.errors.telefono.message}</p>
+        )}
+        {crearCliente.isError && (
+          <p style={{ color: "red" }}>{crearCliente.error.message}</p>
+        )}
+        <button type="submit" disabled={crearCliente.isPending}>
+          {crearCliente.isPending ? "Guardando..." : "Guardar Cliente"}
+        </button>
+        <button type="button" onClick={() => setModoCrear(false)}>
+          Cancelar
+        </button>
       </form>
     );
   }
+
   return (
     <div>
       <div>
+        <label>Buscar Cliente:</label>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar por nombre o teléfono..."
         />
         <ul>
           {resultados?.map((item) => (
-            <li key={item.id} onClick={() => seleccionarCliente(item)}>
+            <li
+              key={item.id}
+              onClick={() => seleccionarCliente(item)}
+              style={{ cursor: "pointer" }}
+            >
               {item.nombre} - {item.telefono}
             </li>
           ))}
         </ul>
-        {query.length >= 2 && resultados?.length === 0 && (
-          <button onClick={() => setModoCrear(true)}>
-            + Crear Nuevo Cliente
-          </button>
-        )}
+        <button type="button" onClick={() => setModoCrear(true)}>
+          + Crear Nuevo Cliente
+        </button>
       </div>
     </div>
   );

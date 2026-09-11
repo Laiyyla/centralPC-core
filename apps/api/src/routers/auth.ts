@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import "@fastify/jwt";
 import { router, publicProcedure } from "../procedures/public.js";
 import { registerSchema, loginSchema } from "@central-pc/schemas";
 import bcrypt from "bcrypt";

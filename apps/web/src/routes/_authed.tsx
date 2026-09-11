@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { isUserAuthenticated } from "@/lib/api";
 
 function AuthedLayout() {
   return <Outlet />;
@@ -6,7 +7,7 @@ function AuthedLayout() {
 
 export const Route = createFileRoute("/_authed")({
   beforeLoad: () => {
-    if (!localStorage.getItem("token")) {
+    if (!isUserAuthenticated()) {
       throw redirect({
         to: "/login",
       });

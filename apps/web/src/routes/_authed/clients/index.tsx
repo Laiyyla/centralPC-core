@@ -1,4 +1,4 @@
-import { trpc } from "../../../trpc/client";
+import { trpc } from "@/trpc/client";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -10,26 +10,28 @@ function ClientsPage() {
   const [search, setSearch] = useState("");
   const { data, isLoading, isError } = trpc.clients.list.useQuery();
 
-  const clientesFiltrados = data?.filter(
-    (cliente) =>
-      cliente.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      cliente.telefono.includes(search),
-  );
+  const clientesFiltrados = data?.filter((cliente) => {
+    const searchLower = search.toLowerCase();
+    const nombreMatches = cliente.nombre ? cliente.nombre.toLowerCase().includes(searchLower) : false;
+    const telefonoMatches = cliente.telefono ? cliente.telefono.includes(search) : false;
+    return nombreMatches || telefonoMatches;
+  });
 
-  if (isLoading) return <p>Cargando</p>;
+  if (isLoading) return <p>Cargando clientes...</p>;
   if (isError) return <p>Error al cargar los clientes</p>;
+
   return (
     <div>
       <input
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Busca por nombre o numero de telefono :D"
+        placeholder="Busca por nombre o número de teléfono"
       />
       <ul>
         {clientesFiltrados?.map((item) => (
           <li key={item.id}>
-            {item.nombre} - {item.telefono} - {item.dni}
+            {item.nombre} - {item.telefono} - {item.dni ?? "Sin DNI"}
           </li>
         ))}
       </ul>
