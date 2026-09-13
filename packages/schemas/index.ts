@@ -28,10 +28,15 @@ export type {
 export {
   createClientSchema,
   getClientByIdSchema,
+  listClientsSchema,
   searchClientSchema,
 } from "./clients.schema.js";
 
-export type { CreateClientInput, SearchClientInput } from "./clients.schema.js";
+export type {
+  CreateClientInput,
+  ListClientsInput,
+  SearchClientInput,
+} from "./clients.schema.js";
 
 // Order Exports
 

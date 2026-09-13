@@ -241,40 +241,33 @@ export const ordersRouter = router({
   getById: authedProcedure
     .input(getOrderByIdSchema)
     .query(async ({ ctx, input }) => {
-      const [orden] = await ctx.db
-        .select()
-        .from(orderTable)
-        .where(eq(orderTable.id, input.id));
+      const orden = await ctx.db.query.orderTable.findFirst({
+        where: eq(orderTable.id, input.id),
+        with: {
+          client: true,
+          devices: true,
+          details: true,
+        },
+      });
+
       if (!orden) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Orden no encontrada",
         });
       }
-      let cliente = null;
-      if (orden.cliente_id) {
-        const [c] = await ctx.db
-          .select()
-          .from(clientTable)
-          .where(eq(clientTable.id, orden.cliente_id));
-        cliente = c ?? null;
-      }
-      const equipos = await ctx.db
-        .select()
-        .from(deviceTable)
-        .where(eq(deviceTable.order_id, orden.id));
-      const detalles = await ctx.db
-        .select()
-        .from(orderDetailTable)
-        .where(eq(orderDetailTable.order_id, orden.id));
-      const equiposConDetalle = equipos.map((equipo) => ({
+
+      const { devices, details, client, ...orderData } = orden;
+
+      const equiposConDetalle = devices.map((equipo) => ({
         ...equipo,
-        detalle: detalles.filter((d) => d.equipo_id === equipo.id),
+        detalle: details.filter((d) => d.equipo_id === equipo.id),
       }));
-      const detalleSuelto = detalles.filter((d) => d.equipo_id === null);
+      const detalleSuelto = details.filter((d) => d.equipo_id === null);
+
       return {
-        ...orden,
-        cliente,
+        ...orderData,
+        cliente: client ?? null,
         equipos: equiposConDetalle,
         detalle_suelto: detalleSuelto,
       };

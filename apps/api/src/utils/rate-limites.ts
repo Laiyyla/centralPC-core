@@ -34,7 +34,11 @@ export function checkRateLimit(identifier: string): {
   return { allowed: true, remaining: MAX_ATTEMPTS - attempt.count };
 }
 
-setInterval(() => {
+export function resetRateLimit(identifier: string): void {
+  attempts.delete(identifier);
+}
+
+const interval = setInterval(() => {
   const now = Date.now();
   for (const [key, value] of attempts.entries()) {
     if (now - value.firstAttempt > WINDOW_MS) {
@@ -42,3 +46,6 @@ setInterval(() => {
     }
   }
 }, WINDOW_MS);
+
+interval.unref();
+

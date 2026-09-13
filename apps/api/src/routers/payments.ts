@@ -13,61 +13,67 @@ export const paymentsRouter = router({
   create: authedProcedure
     .input(createPaymentSchema)
     .mutation(async ({ ctx, input }) => {
-      const [orden] = await ctx.db
-        .select()
-        .from(orderTable)
-        .where(eq(orderTable.id, input.order_id));
-      if (!orden) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Orden no Encontrada",
-        });
-      }
-      if (orden.estado === "ANULADA") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No se pueden registrar pagos en una orden Anulada",
-        });
-      }
+      const result = await ctx.db.transaction(async (tx) => {
+        const [orden] = await tx
+          .select()
+          .from(orderTable)
+          .where(eq(orderTable.id, input.order_id))
+          .for("update");
 
-      const pagosExistentes = await ctx.db
-        .select({ totalPagado: sql`sum(${paymentTable.monto})` })
-        .from(paymentTable)
-        .where(
-          and(
-            eq(paymentTable.order_id, input.order_id),
-            eq(paymentTable.estado, "ACTIVO"),
-          ),
-        );
-      const totalPagado = Number(pagosExistentes[0]?.totalPagado ?? 0);
-      const nuevoTotal = totalPagado + input.monto;
+        if (!orden) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Orden no Encontrada",
+          });
+        }
+        if (orden.estado === "ANULADA") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No se pueden registrar pagos en una orden Anulada",
+          });
+        }
 
-      const nuevoTotalCents = Math.round(nuevoTotal * 100);
-      const totalOrdenCents = Math.round(Number(orden.total) * 100);
+        const pagosExistentes = await tx
+          .select({ totalPagado: sql`sum(${paymentTable.monto})` })
+          .from(paymentTable)
+          .where(
+            and(
+              eq(paymentTable.order_id, input.order_id),
+              eq(paymentTable.estado, "ACTIVO"),
+            ),
+          );
+        const totalPagado = Number(pagosExistentes[0]?.totalPagado ?? 0);
+        const nuevoTotal = totalPagado + input.monto;
 
-      if (nuevoTotalCents > totalOrdenCents) {
-        const restanteCents = totalOrdenCents - Math.round(totalPagado * 100);
-        const restante = Math.max(0, restanteCents / 100);
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `El pago excede el total de la orden. El restante por pagar es: S/.${restante.toFixed(2)}`,
-        });
-      }
+        const nuevoTotalCents = Math.round(nuevoTotal * 100);
+        const totalOrdenCents = Math.round(Number(orden.total) * 100);
 
-      const [pago] = await ctx.db
-        .insert(paymentTable)
-        .values({
-          order_id: input.order_id,
-          metodo: input.metodo,
-          monto: input.monto.toString(),
-          fecha_pago: input.fecha_pago
-            ? new Date(input.fecha_pago)
-            : new Date(),
-          estado: "ACTIVO",
-        })
-        .returning();
+        if (nuevoTotalCents > totalOrdenCents) {
+          const restanteCents = totalOrdenCents - Math.round(totalPagado * 100);
+          const restante = Math.max(0, restanteCents / 100);
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `El pago excede el total de la orden. El restante por pagar es: S/.${restante.toFixed(2)}`,
+          });
+        }
 
-      return pago;
+        const [pago] = await tx
+          .insert(paymentTable)
+          .values({
+            order_id: input.order_id,
+            metodo: input.metodo,
+            monto: input.monto.toString(),
+            fecha_pago: input.fecha_pago
+              ? new Date(input.fecha_pago)
+              : new Date(),
+            estado: "ACTIVO",
+          })
+          .returning();
+
+        return pago;
+      });
+
+      return result;
     }),
   listByOrder: authedProcedure
     .input(getPagoByIdSchema)
