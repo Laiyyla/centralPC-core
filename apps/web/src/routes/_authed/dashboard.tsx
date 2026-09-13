@@ -5,5 +5,9 @@ export const Route = createFileRoute("/_authed/dashboard")({
 });
 
 function DashboardPage() {
-  return <h1>Dashboard working</h1>;
+  return (
+    <div>
+      <h1>Dashboard working</h1>
+    </div>
+  );
 }
