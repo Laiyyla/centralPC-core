@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 
 import { usersTable, eq } from "@central-pc/database";
 import { authedProcedure } from "../procedures/authed.js";
-import { checkRateLimit } from "../utils/rate-limites.js";
+import { checkRateLimit, resetRateLimit } from "../utils/rate-limites.js";
 
 export const authRouter = router({
   register: publicProcedure
@@ -39,8 +39,9 @@ export const authRouter = router({
       return userWithoutPassword;
     }),
   login: publicProcedure.input(loginSchema).mutation(async ({ ctx, input }) => {
-    const identifier = input.user_name;
-    const { allowed, remaining } = checkRateLimit(identifier);
+    const clientIp = ctx.req.ip || "unknown";
+    const identifier = `${clientIp}:${input.user_name}`;
+    const { allowed } = checkRateLimit(identifier);
 
     if (!allowed) {
       throw new TRPCError({
@@ -76,6 +77,8 @@ export const authRouter = router({
         message: "Credenciales Invalidas",
       });
     }
+
+    resetRateLimit(identifier);
 
     const token = await ctx.res.jwtSign(
       {

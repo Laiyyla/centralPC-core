@@ -4,11 +4,10 @@ import {
   createClientSchema,
   searchClientSchema,
   getClientByIdSchema,
+  listClientsSchema,
 } from "@central-pc/schemas";
 import { clientTable, eq, or, ilike } from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
-
-//RECUERDA QUE ASYNC SIEMPRE LLEVA AWAIT, SON PROMESAS, NO SEAS LOCO
 
 export const clientsRouter = router({
   create: authedProcedure
@@ -25,9 +24,16 @@ export const clientsRouter = router({
         .returning();
       return newClient;
     }),
-  list: authedProcedure.query(async ({ ctx }) => {
-    return await ctx.db.select().from(clientTable);
-  }),
+  list: authedProcedure
+    .input(listClientsSchema)
+    .query(async ({ ctx, input }) => {
+      const { limit = 50, offset = 0 } = input ?? {};
+      return await ctx.db
+        .select()
+        .from(clientTable)
+        .limit(limit)
+        .offset(offset);
+    }),
   getById: authedProcedure
     .input(getClientByIdSchema)
     .query(async ({ ctx, input }) => {

@@ -13,7 +13,9 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedCatalogIndexRouteImport } from './routes/_authed/catalog/index'
+import { Route as AuthedCatalogNewRouteImport } from './routes/_authed/catalog/new'
 import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
+import { Route as AuthedClientsClientIdRouteImport } from './routes/_authed/clients/$clientId'
 import { Route as AuthedOrdersIndexRouteImport } from './routes/_authed/orders/index'
 import { Route as AuthedOrdersOrderIdRouteImport } from './routes/_authed/orders/$orderId'
 import { Route as AuthedOrdersNewRouteImport } from './routes/_authed/orders/new'
@@ -37,9 +39,19 @@ const AuthedCatalogIndexRoute = AuthedCatalogIndexRouteImport.update({
   path: '/catalog/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedCatalogNewRoute = AuthedCatalogNewRouteImport.update({
+  id: '/catalog/new',
+  path: '/catalog/new',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedClientsIndexRoute = AuthedClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedClientsClientIdRoute = AuthedClientsClientIdRouteImport.update({
+  id: '/clients/$clientId',
+  path: '/clients/$clientId',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedOrdersIndexRoute = AuthedOrdersIndexRouteImport.update({
@@ -62,6 +74,8 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/catalog/new': typeof AuthedCatalogNewRoute
+  '/clients/$clientId': typeof AuthedClientsClientIdRoute
   '/orders/$orderId': typeof AuthedOrdersOrderIdRoute
   '/orders/new': typeof AuthedOrdersNewRoute
   '/catalog/': typeof AuthedCatalogIndexRoute
@@ -72,6 +86,8 @@ export interface FileRoutesByTo {
   '/': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/catalog/new': typeof AuthedCatalogNewRoute
+  '/clients/$clientId': typeof AuthedClientsClientIdRoute
   '/orders/$orderId': typeof AuthedOrdersOrderIdRoute
   '/orders/new': typeof AuthedOrdersNewRoute
   '/catalog': typeof AuthedCatalogIndexRoute
@@ -83,6 +99,8 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/catalog/new': typeof AuthedCatalogNewRoute
+  '/_authed/clients/$clientId': typeof AuthedClientsClientIdRoute
   '/_authed/orders/$orderId': typeof AuthedOrdersOrderIdRoute
   '/_authed/orders/new': typeof AuthedOrdersNewRoute
   '/_authed/catalog/': typeof AuthedCatalogIndexRoute
@@ -95,6 +113,8 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
+    | '/catalog/new'
+    | '/clients/$clientId'
     | '/orders/$orderId'
     | '/orders/new'
     | '/catalog/'
@@ -105,6 +125,8 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
+    | '/catalog/new'
+    | '/clients/$clientId'
     | '/orders/$orderId'
     | '/orders/new'
     | '/catalog'
@@ -115,6 +137,8 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/login'
     | '/_authed/dashboard'
+    | '/_authed/catalog/new'
+    | '/_authed/clients/$clientId'
     | '/_authed/orders/$orderId'
     | '/_authed/orders/new'
     | '/_authed/catalog/'
@@ -157,11 +181,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCatalogIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/catalog/new': {
+      id: '/_authed/catalog/new'
+      path: '/catalog/new'
+      fullPath: '/catalog/new'
+      preLoaderRoute: typeof AuthedCatalogNewRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/clients/': {
       id: '/_authed/clients/'
       path: '/clients'
       fullPath: '/clients/'
       preLoaderRoute: typeof AuthedClientsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/clients/$clientId': {
+      id: '/_authed/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof AuthedClientsClientIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/orders/': {
@@ -190,6 +228,8 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedCatalogNewRoute: typeof AuthedCatalogNewRoute
+  AuthedClientsClientIdRoute: typeof AuthedClientsClientIdRoute
   AuthedOrdersOrderIdRoute: typeof AuthedOrdersOrderIdRoute
   AuthedOrdersNewRoute: typeof AuthedOrdersNewRoute
   AuthedCatalogIndexRoute: typeof AuthedCatalogIndexRoute
@@ -199,6 +239,8 @@ interface AuthedRouteChildren {
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedCatalogNewRoute: AuthedCatalogNewRoute,
+  AuthedClientsClientIdRoute: AuthedClientsClientIdRoute,
   AuthedOrdersOrderIdRoute: AuthedOrdersOrderIdRoute,
   AuthedOrdersNewRoute: AuthedOrdersNewRoute,
   AuthedCatalogIndexRoute: AuthedCatalogIndexRoute,

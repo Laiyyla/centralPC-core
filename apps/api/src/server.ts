@@ -3,6 +3,7 @@ import fastify from "fastify";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import SuperJSON from "superjson";
 import fastifyCors from "@fastify/cors";
+import fastifyHelmet from "@fastify/helmet";
 import fastifyJwt from "@fastify/jwt";
 import { appRouter } from "./routers/_app.js";
 import { createContext } from "./context.js";
@@ -25,8 +26,17 @@ const app = fastify({
 });
 
 async function main() {
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: false, // Allows flexible API & PDF rendering
+  });
+
+  const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+    : ["http://localhost:5173", "http://localhost:3000"];
+
   await app.register(fastifyCors, {
-    origin: "http://localhost:5173", //NO SE SI CAMBIAR 127.0.0.0 por localhost quizá
+    origin: allowedOrigins,
+    credentials: true,
   });
 
   await app.register(fastifyJwt, {

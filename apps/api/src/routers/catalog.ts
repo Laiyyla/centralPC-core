@@ -26,9 +26,11 @@ export const catalogRouter = router({
       return newItem;
     }),
   list: authedProcedure.input(listItemsSchema).query(async ({ ctx, input }) => {
-    const { tipo, includeInactive } = input ?? {
+    const { tipo, includeInactive, limit = 50, offset = 0 } = input ?? {
       tipo: undefined,
       includeInactive: false,
+      limit: 50,
+      offset: 0,
     };
     const conditions = [];
 
@@ -38,13 +40,16 @@ export const catalogRouter = router({
     if (tipo) {
       conditions.push(eq(catalogTable.tipo_item, tipo));
     }
+    const query = ctx.db
+      .select()
+      .from(catalogTable)
+      .limit(limit)
+      .offset(offset);
+
     if (conditions.length > 0) {
-      return await ctx.db
-        .select()
-        .from(catalogTable)
-        .where(and(...conditions));
+      return await query.where(and(...conditions));
     } else {
-      return await ctx.db.select().from(catalogTable);
+      return await query;
     }
   }),
   getById: authedProcedure
