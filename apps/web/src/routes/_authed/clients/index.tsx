@@ -4,6 +4,9 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/_authed/clients/")({
   component: ClientsPage,
+  staticData: {
+    title: "Clientes",
+  },
 });
 
 function ClientsPage() {
@@ -12,8 +15,12 @@ function ClientsPage() {
 
   const clientesFiltrados = data?.filter((cliente) => {
     const searchLower = search.toLowerCase();
-    const nombreMatches = cliente.nombre ? cliente.nombre.toLowerCase().includes(searchLower) : false;
-    const telefonoMatches = cliente.telefono ? cliente.telefono.includes(search) : false;
+    const nombreMatches = cliente.nombre
+      ? cliente.nombre.toLowerCase().includes(searchLower)
+      : false;
+    const telefonoMatches = cliente.telefono
+      ? cliente.telefono.includes(search)
+      : false;
     return nombreMatches || telefonoMatches;
   });
 

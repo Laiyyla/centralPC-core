@@ -8,6 +8,9 @@ import { openOrderPdf } from "@/lib/api";
 
 export const Route = createFileRoute("/_authed/orders/new")({
   component: RouteComponent,
+  staticData: {
+    title: "Nueva Orden",
+  },
 });
 
 function RouteComponent() {

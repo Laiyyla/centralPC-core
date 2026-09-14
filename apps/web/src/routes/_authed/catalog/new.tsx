@@ -8,6 +8,9 @@ import { itemTypeEnum } from "@central-pc/schemas";
 
 export const Route = createFileRoute("/_authed/catalog/new")({
   component: NewItem,
+  staticData: {
+    title: "Crear Item",
+  },
 });
 
 function NewItem() {

@@ -4,6 +4,9 @@ import { trpc } from "@/trpc/client";
 
 export const Route = createFileRoute("/_authed/catalog/")({
   component: CatalogPage,
+  staticData: {
+    title: "Catálogo",
+  },
 });
 
 function CatalogPage() {
@@ -11,7 +14,9 @@ function CatalogPage() {
   const { data, isLoading, isError } = trpc.catalog.list.useQuery();
 
   const datosFiltrados = data?.filter((item) =>
-    item.nombre ? item.nombre.toLowerCase().includes(search.toLowerCase()) : false
+    item.nombre
+      ? item.nombre.toLowerCase().includes(search.toLowerCase())
+      : false,
   );
 
   if (isLoading) return <p>Cargando catálogo...</p>;
