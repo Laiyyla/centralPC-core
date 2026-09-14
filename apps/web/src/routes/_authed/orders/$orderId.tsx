@@ -4,6 +4,9 @@ import { trpc } from "@/trpc/client";
 
 export const Route = createFileRoute("/_authed/orders/$orderId")({
   component: RouteComponent,
+  staticData: {
+    title: "Detalle de Orden",
+  },
 });
 
 function RouteComponent() {
@@ -16,26 +19,32 @@ function RouteComponent() {
 
   const { data, isLoading, isError } = trpc.orders.getById.useQuery(
     { id: isValidId ? id : 0 },
-    { enabled: isValidId }
+    { enabled: isValidId },
   );
 
   if (!isValidId) return <h2>ID de orden inválido</h2>;
   if (isLoading) return <h2>Cargando información...</h2>;
-  if (isError || !data) return <h2>Error al obtener la información de la orden</h2>;
+  if (isError || !data)
+    return <h2>Error al obtener la información de la orden</h2>;
 
   return (
     <div>
       <h2>Correlativo: {data.correlativo}</h2>
       <div>
-        <strong>Cliente:</strong> {data.cliente?.nombre} - {data.cliente?.telefono}
+        <strong>Cliente:</strong> {data.cliente?.nombre} -{" "}
+        {data.cliente?.telefono}
       </div>
       <div>
         <h2>Equipos ingresados</h2>
         {data.equipos?.map((eq) => (
           <div key={eq.id}>
             <ul>
-              <li><strong>Tipo:</strong> {eq.tipo_equipo}</li>
-              <li><strong>Descripción:</strong> {eq.descripcion}</li>
+              <li>
+                <strong>Tipo:</strong> {eq.tipo_equipo}
+              </li>
+              <li>
+                <strong>Descripción:</strong> {eq.descripcion}
+              </li>
             </ul>
             {eq.detalle?.map((de) => (
               <div key={de.id}>

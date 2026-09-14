@@ -5,6 +5,9 @@ import { openOrderPdf } from "@/lib/api";
 
 export const Route = createFileRoute("/_authed/orders/")({
   component: RouteComponent,
+  staticData: {
+    title: "Ordenes",
+  },
 });
 
 function RouteComponent() {
@@ -42,7 +45,8 @@ function RouteComponent() {
               <div>
                 <h3>Total: {orden.total}</h3>
                 <h3>
-                  Fecha: {new Date(orden.fecha_emision).toLocaleDateString("es-PE")}
+                  Fecha:{" "}
+                  {new Date(orden.fecha_emision).toLocaleDateString("es-PE")}
                 </h3>
               </div>
             )}

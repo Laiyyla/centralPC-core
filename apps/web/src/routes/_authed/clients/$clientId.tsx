@@ -3,6 +3,9 @@ import { trpc } from "@/trpc/client";
 
 export const Route = createFileRoute("/_authed/clients/$clientId")({
   component: RouteComponent,
+  staticData: {
+    title: "Detalles de Cliente",
+  },
 });
 
 function RouteComponent() {
