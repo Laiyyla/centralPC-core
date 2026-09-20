@@ -2,9 +2,42 @@ import { useState } from "react";
 import { CatalogItemSelector } from "./CatalogItemSelector";
 import { tipoEquipoEnum } from "@central-pc/schemas";
 import type { EquipoBase, TipoEquipo } from "@central-pc/schemas";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Plus,
+  Trash2,
+  Monitor,
+  Laptop,
+  Printer,
+  Smartphone,
+  HelpCircle,
+} from "lucide-react";
 
 type DeviceInputProps = {
   onEquiposChange: (equipos: EquipoBase[]) => void;
+};
+
+const tipoEquipoConfig: Record<
+  TipoEquipo,
+  { label: string; icon: React.ReactNode }
+> = {
+  PC: { label: "PC", icon: <Monitor className="size-4" /> },
+  LAPTOP: { label: "Laptop", icon: <Laptop className="size-4" /> },
+  IMPRESORA: { label: "Impresora", icon: <Printer className="size-4" /> },
+  CELULAR: { label: "Celular", icon: <Smartphone className="size-4" /> },
+  OTROS: { label: "Otros", icon: <HelpCircle className="size-4" /> },
 };
 
 export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
@@ -22,14 +55,12 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
 
   function agregarEquipo() {
     if (!nuevoEquipo.descripcion.trim()) {
-      alert("Por favor ingrese la descripción del equipo.");
       return;
     }
     const equipoAdded = [...equipos, nuevoEquipo];
     setEquipos(equipoAdded);
     onEquiposChange(equipoAdded);
 
-    // Reset input fields and force CatalogItemSelector to re-mount with a fresh state key
     setNuevoEquipo({
       tipo_equipo: tipoEquipoEnum.options[0],
       descripcion: "",
@@ -45,58 +76,137 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
   }
 
   return (
-    <div>
-      <div style={{ border: "1px solid #ccc", padding: "12px", marginBottom: "12px" }}>
-        <h4>Agregar Equipo a la Orden</h4>
-        <select
-          value={nuevoEquipo.tipo_equipo}
-          onChange={(e) =>
-            setNuevoEquipo({
-              ...nuevoEquipo,
-              tipo_equipo: e.target.value as TipoEquipo,
-            })
-          }
-        >
-          {tipoEquipoEnum.options.map((tipo) => (
-            <option key={tipo} value={tipo}>
-              {tipo}
-            </option>
-          ))}
-        </select>
-        <input
-          value={nuevoEquipo.descripcion}
-          onChange={(e) =>
-            setNuevoEquipo({ ...nuevoEquipo, descripcion: e.target.value })
-          }
-          placeholder="Descripción / Marca / Modelo del Equipo"
-        />
-        <CatalogItemSelector
-          key={selectorKey}
-          onDetalleChange={(items) =>
-            setNuevoEquipo((prev) => ({ ...prev, detalle: items }))
-          }
-        />
-        <button type="button" onClick={agregarEquipo}>
-          + Agregar Equipo
-        </button>
-      </div>
-
-      <div>
-        <h4>Equipos agregados ({equipos.length})</h4>
-        {equipos.map((equipo, index) => (
-          <div key={index} style={{ borderBottom: "1px dashed #aaa", paddingBottom: "6px" }}>
-            <strong>{equipo.tipo_equipo}</strong> - {equipo.descripcion}
-            {equipo.detalle.map((d, i) => (
-              <p key={i} style={{ margin: "2px 0 2px 12px", fontSize: "0.9em" }}>
-                Item ID {d.item_id} - x{d.cantidad} - S/.{d.precio_unitario}
-              </p>
-            ))}
-            <button type="button" onClick={() => quitarEquipo(index)}>
-              Quitar
-            </button>
+    <div className="space-y-6">
+      {/* Formulario nuevo equipo */}
+      <Card className="bg-surface">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Plus className="size-4 text-primary" />
+            Agregar Equipo
+          </CardTitle>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tipo de Equipo</Label>
+              <Select
+                value={nuevoEquipo.tipo_equipo}
+                onValueChange={(value) =>
+                  setNuevoEquipo({
+                    ...nuevoEquipo,
+                    tipo_equipo: value as TipoEquipo,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {tipoEquipoEnum.options.map((tipo) => (
+                    <SelectItem key={tipo} value={tipo}>
+                      <div className="flex items-center gap-2">
+                        {tipoEquipoConfig[tipo]?.icon}
+                        {tipoEquipoConfig[tipo]?.label ?? tipo}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Descripción / Marca / Modelo</Label>
+              <Input
+                value={nuevoEquipo.descripcion}
+                onChange={(e) =>
+                  setNuevoEquipo({
+                    ...nuevoEquipo,
+                    descripcion: e.target.value,
+                  })
+                }
+                placeholder="Ej: HP Pavilion 15, pantalla rota"
+              />
+            </div>
           </div>
-        ))}
-      </div>
+
+          <CatalogItemSelector
+            key={selectorKey}
+            onDetalleChange={(items) =>
+              setNuevoEquipo((prev) => ({ ...prev, detalle: items }))
+            }
+          />
+
+          <div className="flex justify-end pt-2">
+            <Button
+              type="button"
+              onClick={agregarEquipo}
+              disabled={!nuevoEquipo.descripcion.trim()}
+            >
+              <Plus className="size-4 mr-1" />
+              Agregar Equipo
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de equipos agregados */}
+      {equipos.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-medium text-foreground">
+            Equipos agregados ({equipos.length})
+          </h4>
+          <div className="space-y-3">
+            {equipos.map((equipo, index) => {
+              const config = tipoEquipoConfig[equipo.tipo_equipo];
+              return (
+                <Card key={index} className="bg-surface">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          {config?.icon}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {config?.label ?? equipo.tipo_equipo}
+                            </Badge>
+                          </div>
+                          <p className="font-medium text-foreground mt-1">
+                            {equipo.descripcion}
+                          </p>
+                          {equipo.detalle.length > 0 && (
+                            <ul className="mt-2 space-y-1">
+                              {equipo.detalle.map((d, i) => (
+                                <li
+                                  key={i}
+                                  className="text-sm text-muted-foreground flex items-center gap-2"
+                                >
+                                  <span className="size-1.5 rounded-full bg-muted-foreground" />
+                                  Item ID {d.item_id} - x{d.cantidad} - S/.
+                                  {d.precio_unitario.toFixed(2)}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => quitarEquipo(index)}
+                        className="text-muted-foreground hover:text-error"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
