@@ -37,12 +37,15 @@ export const clientsRouter = router({
   getById: authedProcedure
     .input(getClientByIdSchema)
     .query(async ({ ctx, input }) => {
-      const [client] = await ctx.db
-        .select()
-        .from(clientTable)
-        .where(eq(clientTable.id, input.id));
-      // No se me ocurre el como capturar en una constante el cliente que esta buscando y luego pasarlo por el handler de errores
-      //CORRECION, GUARDA LAS COSAS EN VARIABLES PARA LUEGO USARLAS, NO TE LIMITES EN RAZONAMIENTO
+      const client = await ctx.db.query.clientTable.findFirst({
+        where: eq(clientTable.id, input.id),
+        // No se me ocurre el como capturar en una constante el cliente que esta buscando y luego pasarlo por el handler de errores
+        //CORRECION, GUARDA LAS COSAS EN VARIABLES PARA LUEGO USARLAS, NO TE LIMITES EN RAZONAMIENTO
+        with: {
+          orders: true,
+        },
+      });
+
       if (!client) {
         throw new TRPCError({
           code: "NOT_FOUND",

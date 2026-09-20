@@ -48,7 +48,7 @@ export const listOrdersSchema = z
     cliente_id: z.number().optional(),
     fecha_desde: z.iso.datetime().optional(),
     fecha_hasta: z.iso.datetime().optional(),
-    limit: z.number().min(1).max(100).default(20),
+    limit: z.number().min(1).max(500).default(20),
     offset: z.number().min(0).default(0),
   })
   .optional();

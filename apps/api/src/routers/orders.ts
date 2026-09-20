@@ -58,9 +58,7 @@ export const ordersRouter = router({
                 .where(inArray(catalogTable.id, catalogItemIds))
             : [];
 
-        const catalogMap = new Map(
-          catalogItems.map((item) => [item.id, item]),
-        );
+        const catalogMap = new Map(catalogItems.map((item) => [item.id, item]));
 
         // Validar existencia y estado activo de todos los ítems solicitados
         for (const itemId of catalogItemIds) {
@@ -204,7 +202,7 @@ export const ordersRouter = router({
     .input(listOrdersSchema)
     .query(async ({ ctx, input }) => {
       const { estado, cliente_id, fecha_desde, fecha_hasta, limit, offset } =
-        input ?? { limit: 20, offset: 0 };
+        input ?? { limit: 500, offset: 0 };
       const conditions = [];
 
       if (estado) {
@@ -247,6 +245,7 @@ export const ordersRouter = router({
           client: true,
           devices: true,
           details: true,
+          payments: true,
         },
       });
 
@@ -270,6 +269,7 @@ export const ordersRouter = router({
         cliente: client ?? null,
         equipos: equiposConDetalle,
         detalle_suelto: detalleSuelto,
+        pagos: orden.payments,
       };
     }),
   anular: adminProcedure

@@ -1,26 +1,37 @@
 import { useState } from "react";
 import { trpc } from "@/trpc/client";
-import { createClientSchema, type CreateClientInput } from "@central-pc/schemas";
+import {
+  createClientSchema,
+  type CreateClientInput,
+} from "@central-pc/schemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Search, Plus, X, User, Phone } from "lucide-react";
 
 type ClientSelectorProps = {
   onClientSelect: (id: number | null) => void;
 };
 
+type ClienteResumen = {
+  id: number;
+  nombre: string;
+  telefono: string;
+};
+
 export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   const [query, setQuery] = useState("");
-  const [clienteSeleccionado, setClienteSeleccionado] = useState<{
-    id: number;
-    nombre: string;
-    telefono: string;
-  } | null>(null);
+  const [clienteSeleccionado, setClienteSeleccionado] =
+    useState<ClienteResumen | null>(null);
   const [modoCrear, setModoCrear] = useState(false);
+
   const createClientForm = useForm<CreateClientInput>({
     resolver: zodResolver(createClientSchema),
   });
 
-  const { data: resultados } = trpc.clients.search.useQuery(
+  const { data: resultados, isLoading } = trpc.clients.search.useQuery(
     { query },
     { enabled: query.length >= 2 },
   );
@@ -41,11 +52,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
     },
   });
 
-  function seleccionarCliente(cliente: {
-    id: number;
-    nombre: string;
-    telefono: string;
-  }) {
+  function seleccionarCliente(cliente: ClienteResumen) {
     setClienteSeleccionado(cliente);
     onClientSelect(cliente.id);
     setQuery("");
@@ -55,79 +62,172 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
     crearCliente.mutate(values);
   }
 
+  // Estado: Cliente seleccionado
   if (clienteSeleccionado !== null) {
     return (
-      <div>
-        <p>Cliente seleccionado: <strong>{clienteSeleccionado.nombre}</strong> ({clienteSeleccionado.telefono})</p>
-        <button
-          type="button"
-          onClick={() => {
-            setClienteSeleccionado(null);
-            onClientSelect(null);
-          }}
-        >
-          Cambiar Cliente
-        </button>
+      <div className="rounded-lg border bg-surface p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="size-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">
+                {clienteSeleccionado.nombre}
+              </p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Phone className="size-3" />
+                {clienteSeleccionado.telefono}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setClienteSeleccionado(null);
+              onClientSelect(null);
+            }}
+          >
+            <X className="size-4 mr-1" />
+            Cambiar
+          </Button>
+        </div>
       </div>
     );
   }
 
+  // Estado: Creando nuevo cliente
   if (modoCrear) {
     return (
-      <form onSubmit={createClientForm.handleSubmit(onSubmit)}>
-        <h4>Crear Nuevo Cliente</h4>
-        <input
-          {...createClientForm.register("nombre")}
-          placeholder="Nombre completo"
-        />
-        {createClientForm.formState.errors.nombre && (
-          <p style={{ color: "red" }}>{createClientForm.formState.errors.nombre.message}</p>
-        )}
-        <input
-          {...createClientForm.register("telefono")}
-          placeholder="Teléfono"
-        />
-        {createClientForm.formState.errors.telefono && (
-          <p style={{ color: "red" }}>{createClientForm.formState.errors.telefono.message}</p>
-        )}
-        {crearCliente.isError && (
-          <p style={{ color: "red" }}>{crearCliente.error.message}</p>
-        )}
-        <button type="submit" disabled={crearCliente.isPending}>
-          {crearCliente.isPending ? "Guardando..." : "Guardar Cliente"}
-        </button>
-        <button type="button" onClick={() => setModoCrear(false)}>
-          Cancelar
-        </button>
-      </form>
+      <div className="rounded-lg border bg-surface p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="font-medium text-foreground">Crear Nuevo Cliente</h4>
+          <Button variant="ghost" size="sm" onClick={() => setModoCrear(false)}>
+            <X className="size-4" />
+          </Button>
+        </div>
+        <form
+          onSubmit={createClientForm.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nombre">Nombre completo *</Label>
+              <Input
+                id="nombre"
+                {...createClientForm.register("nombre")}
+                placeholder="Ej: Juan Pérez"
+              />
+              {createClientForm.formState.errors.nombre && (
+                <p className="text-sm text-error">
+                  {createClientForm.formState.errors.nombre.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="telefono">Teléfono *</Label>
+              <Input
+                id="telefono"
+                {...createClientForm.register("telefono")}
+                placeholder="Ej: 987654321"
+              />
+              {createClientForm.formState.errors.telefono && (
+                <p className="text-sm text-error">
+                  {createClientForm.formState.errors.telefono.message}
+                </p>
+              )}
+            </div>
+          </div>
+          {crearCliente.isError && (
+            <p className="text-sm text-error">{crearCliente.error.message}</p>
+          )}
+          <div className="flex gap-2 justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setModoCrear(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={crearCliente.isPending}>
+              {crearCliente.isPending ? "Guardando..." : "Guardar Cliente"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   }
 
+  // Estado: Buscando
   return (
-    <div>
-      <div>
-        <label>Buscar Cliente:</label>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por nombre o teléfono..."
-        />
-        <ul>
-          {resultados?.map((item) => (
-            <li
-              key={item.id}
-              onClick={() => seleccionarCliente(item)}
-              style={{ cursor: "pointer" }}
-            >
-              {item.nombre} - {item.telefono}
-            </li>
-          ))}
-        </ul>
-        <button type="button" onClick={() => setModoCrear(true)}>
-          + Crear Nuevo Cliente
-        </button>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Buscar Cliente (DNI/Nombre)</Label>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ej: 123456789 o Juan Pérez"
+              className="pl-9"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setModoCrear(true)}
+          >
+            <Plus className="size-4 mr-1" />
+            Nuevo Cliente
+          </Button>
+        </div>
       </div>
+
+      {query.length >= 2 && (
+        <div className="rounded-md border bg-surface max-h-48 overflow-y-auto">
+          {isLoading ? (
+            <p className="p-3 text-sm text-muted-foreground text-center">
+              Buscando...
+            </p>
+          ) : resultados?.length === 0 ? (
+            <div className="p-3 text-center">
+              <p className="text-sm text-muted-foreground">
+                No se encontraron clientes.
+              </p>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setModoCrear(true)}
+                className="mt-1"
+              >
+                Crear nuevo cliente
+              </Button>
+            </div>
+          ) : (
+            <ul className="divide-y">
+              {resultados?.map((cliente) => (
+                <li
+                  key={cliente.id}
+                  onClick={() => seleccionarCliente(cliente)}
+                  className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                >
+                  <div className="size-8 rounded-full bg-muted flex items-center justify-center">
+                    <User className="size-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{cliente.nombre}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {cliente.telefono}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
