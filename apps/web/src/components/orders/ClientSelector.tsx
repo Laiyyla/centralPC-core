@@ -118,6 +118,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
                 id="nombre"
                 {...createClientForm.register("nombre")}
                 placeholder="Ej: Juan Pérez"
+                disabled={crearCliente.isPending}
               />
               {createClientForm.formState.errors.nombre && (
                 <p className="text-sm text-error">
@@ -131,6 +132,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
                 id="telefono"
                 {...createClientForm.register("telefono")}
                 placeholder="Ej: 987654321"
+                disabled={crearCliente.isPending}
               />
               {createClientForm.formState.errors.telefono && (
                 <p className="text-sm text-error">
@@ -147,6 +149,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
               type="button"
               variant="ghost"
               onClick={() => setModoCrear(false)}
+              disabled={crearCliente.isPending}
             >
               Cancelar
             </Button>

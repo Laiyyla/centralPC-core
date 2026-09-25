@@ -91,6 +91,7 @@ function LoginPage() {
                     {...form.register("user_name")}
                     placeholder="nombre.apellido"
                     className="pl-9"
+                    disabled={loginMutation.isPending}
                   />
                 </div>
               </div>
@@ -107,6 +108,7 @@ function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     className="pl-9 pr-9"
+                    disabled={loginMutation.isPending}
                   />
                   <button
                     type="button"
