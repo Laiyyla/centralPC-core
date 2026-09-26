@@ -19,6 +19,7 @@ import {
   EyeIcon,
   EyeOffIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useState } from "react";
 
 export const Route = createFileRoute("/login")({
@@ -44,6 +45,9 @@ function LoginPage() {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
       setToken(data.token);
+      toast.success("Sesión Iniciada", {
+        description: `Bienvenido ${data.user.nombre}`,
+      });
       navigate({ to: "/dashboard" });
     },
     onError: (error) => {

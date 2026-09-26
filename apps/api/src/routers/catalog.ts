@@ -8,13 +8,35 @@ import {
   toggleActiveSchema,
   createComboSchema,
 } from "@central-pc/schemas";
-import { catalogTable, eq, and, combo_components, inArray } from "@central-pc/database";
+import {
+  catalogTable,
+  eq,
+  and,
+  combo_components,
+  inArray,
+} from "@central-pc/database";
 import { TRPCError } from "@trpc/server";
 
 export const catalogRouter = router({
   create: authedProcedure
     .input(createItemSchema)
     .mutation(async ({ ctx, input }) => {
+      const existingItem = await ctx.db
+        .select()
+        .from(catalogTable)
+        .where(
+          and(
+            eq(catalogTable.nombre, input.nombre),
+            eq(catalogTable.tipo_item, input.tipo),
+          ),
+        );
+
+      if (existingItem.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "El item ya existe",
+        });
+      }
       const [newItem] = await ctx.db
         .insert(catalogTable)
         .values({
@@ -26,7 +48,12 @@ export const catalogRouter = router({
       return newItem;
     }),
   list: authedProcedure.input(listItemsSchema).query(async ({ ctx, input }) => {
-    const { tipo, includeInactive, limit = 50, offset = 0 } = input ?? {
+    const {
+      tipo,
+      includeInactive,
+      limit = 50,
+      offset = 0,
+    } = input ?? {
       tipo: undefined,
       includeInactive: false,
       limit: 50,
