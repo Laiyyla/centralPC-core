@@ -28,6 +28,7 @@ import {
   AlertCircle,
   Info,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authed/orders/new")({
   component: RouteComponent,
@@ -54,10 +55,16 @@ function RouteComponent() {
 
   const orderMutation = trpc.orders.create.useMutation({
     onSuccess: async (data) => {
+      toast.success("Orden Creada!", {
+        description: `Orden ${data.correlativo} registrada correctamente`,
+      });
       try {
         await openOrderPdf(data.id);
       } catch (e) {
         console.error("Error al abrir PDF:", e);
+        toast.warning("PDF no disponible", {
+          description: "La orden fue registrada pero hay problemas con el PDF",
+        });
       }
       navigate({
         to: "/orders/$orderId",
@@ -65,6 +72,7 @@ function RouteComponent() {
       });
     },
     onError: (error) => {
+      toast.error("Error al crear la orden", { description: error.message });
       console.error("Error creando orden:", error.message);
     },
   });

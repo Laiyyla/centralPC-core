@@ -32,6 +32,7 @@ import {
   Layers,
   Calculator,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authed/catalog/new")({
   component: NewItem,
@@ -59,9 +60,13 @@ function NewItem() {
 
   const itemMutation = trpc.catalog.create.useMutation({
     onSuccess: () => {
+      toast.success("Item Creado", {
+        description: "El item se agregó al catálogo correctamente",
+      });
       navigate({ to: "/catalog" });
     },
     onError: (error) => {
+      toast.error("Error al crear ítem", { description: error.message });
       console.error(error.message);
     },
   });

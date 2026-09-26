@@ -15,6 +15,7 @@ import {
   ArrowRightLeftIcon,
   CreditCardIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type PaymentFormProps = {
   orderId: number;
@@ -46,7 +47,10 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
   const utils = trpc.useUtils();
 
   const paymentMutation = trpc.payments.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      toast.success("Pago Registrado", {
+        description: `S/${data.monto} via ${data.metodo}`,
+      });
       utils.orders.getById.invalidate({ id: orderId });
       utils.orders.list.invalidate();
       form.reset({
@@ -55,6 +59,9 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
       });
     },
     onError: (error) => {
+      toast.error("Error al registrar el pago", {
+        description: error.message,
+      });
       console.error("Error registrando pago:", error.message);
     },
   });

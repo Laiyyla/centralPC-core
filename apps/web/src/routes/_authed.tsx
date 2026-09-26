@@ -23,7 +23,9 @@ import {
   LogOutIcon,
   CpuIcon,
 } from "lucide-react";
+import { Toaster } from "sonner";
 import { trpc } from "@/trpc/client";
+import { styleText } from "util";
 
 function AuthedLayout() {
   const matches = useMatches();
@@ -42,6 +44,13 @@ function AuthedLayout() {
 
   return (
     <AuthContext.Provider value={{ user }}>
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        duration={3500}
+        toastOptions={{ style: { fontFamily: "inherit" } }}
+      ></Toaster>
       <SidebarProvider>
         <Sidebar
           side="left"
