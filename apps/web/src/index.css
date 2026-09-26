@@ -179,11 +179,6 @@
 }
 /* Animación suave para sidebar */
 /* Animación suave para sidebar */
-[data-sidebar="sidebar"],
-[data-sidebar="sidebar"] * {
-    transition-duration: 300ms !important;
-    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
 
 [data-sidebar="sidebar"] {
     --sidebar: #1a1a2e;
