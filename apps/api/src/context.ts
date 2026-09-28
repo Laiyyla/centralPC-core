@@ -3,6 +3,7 @@ import "@fastify/jwt";
 
 import { getDb } from "@central-pc/database";
 import type { roleEnum } from "@central-pc/database";
+import { createServices } from "./services/index.js";
 
 type UserPayload = {
   id: number;
@@ -31,12 +32,16 @@ export async function createContext({ req, res }: CreateFastifyContextOptions) {
       user = null;
     }
   }
+  const db = getDb();
+
+  const services = createServices({ db, req, res });
 
   return {
-    db: getDb(),
+    db,
     user,
     req,
     res,
+    services,
   };
 }
 

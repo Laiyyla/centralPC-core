@@ -1,6 +1,8 @@
-import { router } from "../procedures/public.js";
-import { authedProcedure } from "../procedures/authed.js";
-import { adminProcedure } from "../procedures/admin.js";
+import {
+  router,
+  adminProcedure,
+  authedProcedure,
+} from "../procedures/index.js";
 import {
   createOrderSchema,
   getOrderByIdSchema,
@@ -125,7 +127,7 @@ export const ordersRouter = router({
             correlativo: nuevoCorrelativo,
             cliente_id: input.cliente_id ?? null,
             user_id: ctx.user.id,
-            estado: "EMITIDA",
+            estado: "RECEPCIONADA",
             total: totalCalculado.toString(),
             observaciones: input.observaciones ?? null,
           })

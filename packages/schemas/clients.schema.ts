@@ -26,4 +26,4 @@ export const listClientsSchema = z
 export type CreateClientInput = z.infer<typeof createClientSchema>;
 export type SearchClientInput = z.infer<typeof searchClientSchema>;
 export type ListClientsInput = z.infer<typeof listClientsSchema>;
-
+export type GetClientByIdInput = z.infer<typeof getClientByIdSchema>;

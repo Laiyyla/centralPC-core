@@ -73,3 +73,4 @@ export type GetOrderByIdInput = z.infer<typeof getOrderByIdSchema>;
 export type anularOrdenInput = z.infer<typeof anularOrderSchema>;
 export type EquipoBase = z.infer<typeof equipoBaseSchema>;
 export type TipoEquipo = z.infer<typeof tipoEquipoEnum>;
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
