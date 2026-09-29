@@ -36,6 +36,7 @@ export type {
   CreateClientInput,
   ListClientsInput,
   SearchClientInput,
+  GetClientByIdInput,
 } from "./clients.schema.js";
 
 // Order Exports
@@ -57,6 +58,7 @@ export type {
   anularOrdenInput,
   EquipoBase,
   TipoEquipo,
+  CreateOrderInput,
 } from "./order.schema.js";
 
 // Payments Exports

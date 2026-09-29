@@ -1,5 +1,4 @@
-import { router } from "../procedures/public.js";
-import { authedProcedure } from "../procedures/authed.js";
+import { router, authedProcedure } from "../procedures/index.js";
 import {
   createItemSchema,
   updateItemSchema,
@@ -8,184 +7,34 @@ import {
   toggleActiveSchema,
   createComboSchema,
 } from "@central-pc/schemas";
-import {
-  catalogTable,
-  eq,
-  and,
-  combo_components,
-  inArray,
-} from "@central-pc/database";
-import { TRPCError } from "@trpc/server";
 
 export const catalogRouter = router({
   create: authedProcedure
     .input(createItemSchema)
     .mutation(async ({ ctx, input }) => {
-      const existingItem = await ctx.db
-        .select()
-        .from(catalogTable)
-        .where(
-          and(
-            eq(catalogTable.nombre, input.nombre),
-            eq(catalogTable.tipo_item, input.tipo),
-          ),
-        );
-
-      if (existingItem.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "El item ya existe",
-        });
-      }
-      const [newItem] = await ctx.db
-        .insert(catalogTable)
-        .values({
-          nombre: input.nombre,
-          precio_ref: input.precio_referencial,
-          tipo_item: input.tipo,
-        })
-        .returning();
-      return newItem;
+      return await ctx.services.catalog.create.execute(input);
     }),
   list: authedProcedure.input(listItemsSchema).query(async ({ ctx, input }) => {
-    const {
-      tipo,
-      includeInactive,
-      limit = 50,
-      offset = 0,
-    } = input ?? {
-      tipo: undefined,
-      includeInactive: false,
-      limit: 50,
-      offset: 0,
-    };
-    const conditions = [];
-
-    if (!includeInactive) {
-      conditions.push(eq(catalogTable.isActive, true));
-    }
-    if (tipo) {
-      conditions.push(eq(catalogTable.tipo_item, tipo));
-    }
-    const query = ctx.db
-      .select()
-      .from(catalogTable)
-      .limit(limit)
-      .offset(offset);
-
-    if (conditions.length > 0) {
-      return await query.where(and(...conditions));
-    } else {
-      return await query;
-    }
+    return await ctx.services.catalog.list.execute(input);
   }),
   getById: authedProcedure
     .input(getByIdSchema)
     .query(async ({ ctx, input }) => {
-      const [item] = await ctx.db
-        .select()
-        .from(catalogTable)
-        .where(eq(catalogTable.id, input.id));
-      if (!item) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Item no Encontrado",
-        });
-      }
-      return item;
+      return await ctx.services.catalog.getById.execute(input);
     }),
   update: authedProcedure
     .input(updateItemSchema)
     .mutation(async ({ ctx, input }) => {
-      const updateData: Record<string, any> = {};
-      if (input.nombre !== undefined) updateData.nombre = input.nombre;
-      if (input.precio_referencial !== undefined)
-        updateData.precio_ref = input.precio_referencial;
-      if (input.activo !== undefined) updateData.isActive = input.activo;
-      const [updatedItem] = await ctx.db
-        .update(catalogTable)
-        .set(updateData)
-        .where(eq(catalogTable.id, input.id))
-        .returning();
-      return updatedItem;
+      return await ctx.services.catalog.update.execute(input);
     }),
   toggleActive: authedProcedure
     .input(toggleActiveSchema)
     .mutation(async ({ ctx, input }) => {
-      const [toggledActive] = await ctx.db
-        .update(catalogTable)
-        .set({
-          isActive: input.activo,
-        })
-        .where(eq(catalogTable.id, input.id))
-        .returning();
-      return toggledActive;
+      return await ctx.services.catalog.toggleActive.execute(input);
     }),
   createCombo: authedProcedure
     .input(createComboSchema)
     .mutation(async ({ ctx, input }) => {
-      const componentesMap = new Map<number, number>();
-
-      for (const c of input.componentes) {
-        const actual = componentesMap.get(c.componente_item_id) ?? 0;
-        componentesMap.set(c.componente_item_id, actual + c.cantidad);
-      }
-      const componentesConsolidados = Array.from(componentesMap.entries()).map(
-        ([componente_item_id, cantidad]) => ({ componente_item_id, cantidad }),
-      );
-      const compIds = componentesConsolidados.map((c) => c.componente_item_id);
-
-      const result = await ctx.db.transaction(async (tx) => {
-        const catalogItems =
-          compIds.length > 0
-            ? await tx
-                .select()
-                .from(catalogTable)
-                .where(inArray(catalogTable.id, compIds))
-            : [];
-
-        const catalogItemsMap = new Map(
-          catalogItems.map((item) => [item.id, item]),
-        );
-
-        for (const c of componentesConsolidados) {
-          const item = catalogItemsMap.get(c.componente_item_id);
-          if (!item) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: `Componente con el ID ${c.componente_item_id} no encontrado en el catalogo`,
-            });
-          }
-          if (item.tipo_item === "combo") {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: `No se pueden anidar combos, el item "${item.nombre}" es un combo`,
-            });
-          }
-        }
-
-        const [combo] = await tx
-          .insert(catalogTable)
-          .values({
-            nombre: input.nombre,
-            precio_ref: input.precio_referencial.toString(),
-            tipo_item: "combo",
-            isActive: true,
-          })
-          .returning();
-
-        if (componentesConsolidados.length > 0) {
-          await tx.insert(combo_components).values(
-            componentesConsolidados.map((c) => ({
-              combo_id: combo.id,
-              comp_id: c.componente_item_id,
-              cantidad: c.cantidad,
-            })),
-          );
-        }
-
-        return combo;
-      });
-      return result;
+      return await ctx.services.catalog.createCombo.execute(input);
     }),
 });

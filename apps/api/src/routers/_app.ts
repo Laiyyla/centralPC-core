@@ -1,4 +1,4 @@
-import { router } from "../procedures/public.js";
+import { router } from "../procedures/index.js";
 import { authRouter } from "./auth.js";
 import { clientsRouter } from "./clients.js";
 import { catalogRouter } from "./catalog.js";

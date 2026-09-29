@@ -1,6 +1,8 @@
-import { router } from "../procedures/public.js";
-import { authedProcedure } from "../procedures/authed.js";
-import { adminProcedure } from "../procedures/admin.js";
+import {
+  router,
+  adminProcedure,
+  authedProcedure,
+} from "../procedures/index.js";
 import {
   createPaymentSchema,
   anularPagoSchema,
