@@ -45,6 +45,9 @@ export {
   detalleItemSchema,
   anularOrderSchema,
   createOrderSchema,
+  updateOrderSchema,
+  changeOrderStatusSchema,
+  assignTechnicianSchema,
   equipoSchema,
   estadoOrderEnum,
   getOrderByIdSchema,
@@ -55,11 +58,15 @@ export {
 export type {
   ListOrdersInput,
   GetOrderByIdInput,
+  UpdateOrderInput,
+  ChangeOrderStatusInput,
+  AssignTechnicianInput,
   anularOrdenInput,
   EquipoBase,
   TipoEquipo,
   CreateOrderInput,
 } from "./order.schema.js";
+
 
 // Payments Exports
 
@@ -73,5 +80,5 @@ export {
 export type {
   CreatePaymentInput,
   AnularPagoInput,
-  GetPagoById,
+  GetPagoByIdInput,
 } from "./payments.schema.js";

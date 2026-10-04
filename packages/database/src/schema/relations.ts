@@ -8,6 +8,7 @@ import { orderTable } from "./orders.js";
 import { deviceTable } from "./devices.js";
 import { orderDetailTable } from "./order_details.js";
 import { paymentTable } from "./payments.js";
+import { orderHistoryTable } from "./order_history.js";
 
 export const branchRelations = relations(branchTable, ({ many }) => ({
   orders: many(orderTable),
@@ -15,8 +16,10 @@ export const branchRelations = relations(branchTable, ({ many }) => ({
 
 export const usersRelations = relations(usersTable, ({ many }) => ({
   orders: many(orderTable),
+  assignedOrders: many(orderTable, { relationName: "order_encargado" }),
   anulledOrders: many(orderTable, { relationName: "order_user_anul" }),
   anulledPayments: many(paymentTable, { relationName: "payment_user_anul" }),
+  historyLogs: many(orderHistoryTable),
 }));
 
 export const clientRelations = relations(clientTable, ({ many }) => ({
@@ -55,6 +58,11 @@ export const orderRelations = relations(orderTable, ({ one, many }) => ({
     fields: [orderTable.user_id],
     references: [usersTable.id],
   }),
+  encargado: one(usersTable, {
+    fields: [orderTable.encargado_id],
+    references: [usersTable.id],
+    relationName: "order_encargado",
+  }),
   userAnul: one(usersTable, {
     fields: [orderTable.user_anul],
     references: [usersTable.id],
@@ -63,6 +71,7 @@ export const orderRelations = relations(orderTable, ({ one, many }) => ({
   devices: many(deviceTable),
   details: many(orderDetailTable),
   payments: many(paymentTable),
+  history: many(orderHistoryTable),
 }));
 
 export const deviceRelations = relations(deviceTable, ({ one, many }) => ({
@@ -99,3 +108,15 @@ export const paymentRelations = relations(paymentTable, ({ one }) => ({
     relationName: "payment_user_anul",
   }),
 }));
+
+export const orderHistoryRelations = relations(orderHistoryTable, ({ one }) => ({
+  order: one(orderTable, {
+    fields: [orderHistoryTable.order_id],
+    references: [orderTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [orderHistoryTable.user_id],
+    references: [usersTable.id],
+  }),
+}));
+

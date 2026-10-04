@@ -4,6 +4,7 @@ import {
   authedProcedure,
 } from "../procedures/index.js";
 import { registerSchema, loginSchema } from "@central-pc/schemas";
+import { usersTable, eq } from "@central-pc/database";
 
 export const authRouter = router({
   register: publicProcedure
@@ -21,4 +22,16 @@ export const authRouter = router({
       rol: ctx.user.rol,
     };
   }),
+  listUsers: authedProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select({
+        id: usersTable.id,
+        nombre: usersTable.nombre,
+        user_name: usersTable.user_name,
+        rol: usersTable.rol,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.isActive, true));
+  }),
 });
+

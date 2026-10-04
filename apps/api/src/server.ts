@@ -8,6 +8,7 @@ import fastifyJwt from "@fastify/jwt";
 import { appRouter } from "./routers/_app.js";
 import { createContext } from "./context.js";
 import { pdfRoutes } from "./routes/pdf.routes.js";
+import "./env.js";
 
 dotenv.config();
 

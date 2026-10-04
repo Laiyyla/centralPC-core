@@ -30,7 +30,7 @@ import { styleText } from "util";
 function AuthedLayout() {
   const matches = useMatches();
   const navigate = useNavigate();
-  const currentTitle = matches[matches.length - 1]?.staticData.title;
+  const currentTitle = (matches[matches.length - 1]?.staticData as { title?: string } | undefined)?.title;
   const { data: user } = trpc.auth.me.useQuery();
 
   const initials = user?.nombre

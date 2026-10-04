@@ -8,114 +8,23 @@ import {
   anularPagoSchema,
   getPagoByIdSchema,
 } from "@central-pc/schemas";
-import { paymentTable, orderTable, eq, sql, and } from "@central-pc/database";
-import { TRPCError } from "@trpc/server";
 
 export const paymentsRouter = router({
   create: authedProcedure
     .input(createPaymentSchema)
     .mutation(async ({ ctx, input }) => {
-      const result = await ctx.db.transaction(async (tx) => {
-        const [orden] = await tx
-          .select()
-          .from(orderTable)
-          .where(eq(orderTable.id, input.order_id))
-          .for("update");
-
-        if (!orden) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Orden no Encontrada",
-          });
-        }
-        if (orden.estado === "ANULADA") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "No se pueden registrar pagos en una orden Anulada",
-          });
-        }
-
-        const pagosExistentes = await tx
-          .select({ totalPagado: sql`sum(${paymentTable.monto})` })
-          .from(paymentTable)
-          .where(
-            and(
-              eq(paymentTable.order_id, input.order_id),
-              eq(paymentTable.estado, "ACTIVO"),
-            ),
-          );
-        const totalPagado = Number(pagosExistentes[0]?.totalPagado ?? 0);
-        const nuevoTotal = totalPagado + input.monto;
-
-        const nuevoTotalCents = Math.round(nuevoTotal * 100);
-        const totalOrdenCents = Math.round(Number(orden.total) * 100);
-
-        if (nuevoTotalCents > totalOrdenCents) {
-          const restanteCents = totalOrdenCents - Math.round(totalPagado * 100);
-          const restante = Math.max(0, restanteCents / 100);
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `El pago excede el total de la orden. El restante por pagar es: S/.${restante.toFixed(2)}`,
-          });
-        }
-
-        const [pago] = await tx
-          .insert(paymentTable)
-          .values({
-            order_id: input.order_id,
-            metodo: input.metodo,
-            monto: input.monto.toString(),
-            fecha_pago: input.fecha_pago
-              ? new Date(input.fecha_pago)
-              : new Date(),
-            estado: "ACTIVO",
-          })
-          .returning();
-
-        return pago;
-      });
-
-      return result;
+      return await ctx.services.payments.create.execute(input);
     }),
   listByOrder: authedProcedure
     .input(getPagoByIdSchema)
     .query(async ({ ctx, input }) => {
-      const pagos = await ctx.db
-        .select()
-        .from(paymentTable)
-        .where(eq(paymentTable.order_id, input.order_id));
-      return pagos;
+      return await ctx.services.payments.listByOrder.execute(input);
     }),
   anular: adminProcedure
     .input(anularPagoSchema)
     .mutation(async ({ ctx, input }) => {
-      const [pago] = await ctx.db
-        .select()
-        .from(paymentTable)
-        .where(eq(paymentTable.id, input.id));
-      if (!pago) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Pago no Encontrado",
-        });
-      }
-      if (pago.estado === "ANULADO") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "El pago especificado ya fue anulado",
-        });
-      }
-      const [pagoActualizado] = await ctx.db
-        .update(paymentTable)
-        .set({
-          estado: "ANULADO",
-          fecha_anulacion: new Date(),
-          motivo_anulacion: input.motivo,
-          usuario_anulacion_id: ctx.user.id,
-        })
-        .where(eq(paymentTable.id, input.id))
-        .returning();
-
-      return pagoActualizado;
+      return await ctx.services.payments.anular.execute(input, {
+        userId: ctx.user.id,
+      });
     }),
 });

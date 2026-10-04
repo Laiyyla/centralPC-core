@@ -12,4 +12,6 @@ export {
   lte,
   desc,
   inArray,
+  isNull,
 } from "drizzle-orm";
+
