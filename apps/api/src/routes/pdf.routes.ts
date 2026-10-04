@@ -4,14 +4,17 @@ import { generateOrderPdfStream } from "../services/pdf/order-pdf.service.js";
 export async function pdfRoutes(fastify: FastifyInstance) {
   fastify.get("/api/orders/:id/pdf", async (req, res) => {
     const authHeader = req.headers.authorization;
+    let token = req.cookies?.token;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token && authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    }
+
+    if (!token) {
       return res
         .status(401)
         .send({ error: "No autorizado: Inicia sesion Porfavor" });
     }
-
-    const token = authHeader.substring(7);
 
     try {
       await fastify.jwt.verify(token);

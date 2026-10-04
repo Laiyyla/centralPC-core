@@ -1,5 +1,9 @@
 export function getApiUrl(): string {
-  return import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const url = import.meta.env.VITE_API_URL;
+  if (!url && import.meta.env.PROD) {
+    throw new Error("CRITICAL: VITE_API_URL is not defined in production environment.");
+  }
+  return url || "http://localhost:3000";
 }
 
 export function getToken(): string | null {
@@ -18,9 +22,15 @@ export function isTokenExpired(token: string): boolean {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return true;
-    const payload = JSON.parse(
-      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
     );
+    const payload = JSON.parse(jsonPayload);
     if (!payload.exp) return false;
     return Date.now() >= payload.exp * 1000;
   } catch {
@@ -47,16 +57,15 @@ export function handleUnauthorized(): void {
 
 export async function openOrderPdf(orderId: number): Promise<void> {
   const token = getToken();
-  if (!token) {
-    handleUnauthorized();
-    return;
+  const apiUrl = getApiUrl();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const apiUrl = getApiUrl();
   const response = await fetch(`${apiUrl}/api/orders/${orderId}/pdf`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers,
   });
 
   if (response.status === 401) {
@@ -70,5 +79,9 @@ export async function openOrderPdf(orderId: number): Promise<void> {
 
   const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
-  window.open(blobUrl, "_blank");
+  window.open(blobUrl, "_blank", "noopener,noreferrer");
+
+  setTimeout(() => {
+    URL.revokeObjectURL(blobUrl);
+  }, 10000);
 }

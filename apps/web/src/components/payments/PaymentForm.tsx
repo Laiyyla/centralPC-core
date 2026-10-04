@@ -62,7 +62,9 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
       toast.error("Error al registrar el pago", {
         description: error.message,
       });
-      console.error("Error registrando pago:", error.message);
+      if (import.meta.env.DEV) {
+        console.error("Error registrando pago:", error.message);
+      }
     },
   });
 

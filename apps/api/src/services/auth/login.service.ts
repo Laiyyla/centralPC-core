@@ -1,6 +1,7 @@
 import { usersTable, eq } from "@central-pc/database";
 import { LoginInput } from "@central-pc/schemas";
 import { FastifyRequest, FastifyReply } from "fastify";
+import "@fastify/cookie";
 import bcrypt from "bcrypt";
 import type { Database } from "../types.js";
 import { checkRateLimit, resetRateLimit } from "../../utils/rate-limites.js";
@@ -49,6 +50,14 @@ export class LoginService {
       },
       { expiresIn: "7d" },
     );
+
+    this.res.setCookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60,
+    });
 
     return {
       token,

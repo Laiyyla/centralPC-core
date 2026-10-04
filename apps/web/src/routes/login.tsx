@@ -51,7 +51,9 @@ function LoginPage() {
       navigate({ to: "/dashboard" });
     },
     onError: (error) => {
-      console.error(error.message);
+      if (import.meta.env.DEV) {
+        console.error(error.message);
+      }
     },
   });
 

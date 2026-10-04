@@ -67,7 +67,9 @@ function NewItem() {
     },
     onError: (error) => {
       toast.error("Error al crear ítem", { description: error.message });
-      console.error(error.message);
+      if (import.meta.env.DEV) {
+        console.error(error.message);
+      }
     },
   });
 

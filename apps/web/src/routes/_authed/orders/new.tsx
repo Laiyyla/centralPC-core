@@ -61,7 +61,9 @@ function RouteComponent() {
       try {
         await openOrderPdf(data.id);
       } catch (e) {
-        console.error("Error al abrir PDF:", e);
+        if (import.meta.env.DEV) {
+          console.error("Error al abrir PDF:", e);
+        }
         toast.warning("PDF no disponible", {
           description: "La orden fue registrada pero hay problemas con el PDF",
         });
@@ -73,7 +75,9 @@ function RouteComponent() {
     },
     onError: (error) => {
       toast.error("Error al crear la orden", { description: error.message });
-      console.error("Error creando orden:", error.message);
+      if (import.meta.env.DEV) {
+        console.error("Error creando orden:", error.message);
+      }
     },
   });
 
