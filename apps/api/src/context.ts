@@ -1,5 +1,6 @@
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import "@fastify/jwt";
+import "@fastify/cookie";
 
 import { getDb } from "@central-pc/database";
 import type { roleEnum } from "@central-pc/database";
@@ -14,19 +15,17 @@ type UserPayload = {
 
 export async function createContext({ req, res }: CreateFastifyContextOptions) {
   const authHeader = req.headers["authorization"];
+  let token: string | undefined = req.cookies?.token;
+
+  if (!token && authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    token = authHeader.slice(7);
+  }
 
   let user: UserPayload | null = null;
 
-  if (
-    authHeader &&
-    typeof authHeader === "string" &&
-    authHeader.startsWith("Bearer ")
-  ) {
-    const token = authHeader.slice(7); //aqui tampoco tengo idea de como hacerle
-    //Correccion: Bearer con .slice de 7 ya que se coloca el espacio para que solo tome el token
-
+  if (token) {
     try {
-      const payload = await req.jwtVerify();
+      const payload = await req.jwtVerify({ onlyCookie: false });
       user = payload as UserPayload;
     } catch {
       user = null;

@@ -47,7 +47,6 @@ import {
   HistoryIcon,
   ClockIcon,
   FileTextIcon,
-  CheckCircle2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EditOrderModal } from "@/components/orders/EditOrderModal";
@@ -118,7 +117,9 @@ function RouteComponent() {
     try {
       await openOrderPdf(id);
     } catch (err) {
-      console.error(err);
+      if (import.meta.env.DEV) {
+        console.error(err);
+      }
     }
   }
 

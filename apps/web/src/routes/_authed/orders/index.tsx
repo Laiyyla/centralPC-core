@@ -26,7 +26,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -35,7 +34,6 @@ import {
   MoreHorizontal,
   FileText,
   Eye,
-  XCircle,
   CalendarIcon,
   UserCheck,
   UserX,
@@ -147,7 +145,9 @@ function RouteComponent() {
     try {
       await openOrderPdf(ordenId);
     } catch (err) {
-      console.error(err);
+      if (import.meta.env.DEV) {
+        console.error(err);
+      }
     }
   }
 

@@ -5,6 +5,7 @@ import SuperJSON from "superjson";
 import fastifyCors from "@fastify/cors";
 import fastifyHelmet from "@fastify/helmet";
 import fastifyJwt from "@fastify/jwt";
+import fastifyCookie from "@fastify/cookie";
 import { appRouter } from "./routers/_app.js";
 import { createContext } from "./context.js";
 import { pdfRoutes } from "./routes/pdf.routes.js";
@@ -22,7 +23,7 @@ const app = fastify({
         ignore: "pid,hostname",
       },
     },
-    redact: ["req.headers.authorization", "body.password"],
+    redact: ["req.headers.authorization", "req.headers.cookie", "body.password"],
   },
 });
 
@@ -40,8 +41,16 @@ async function main() {
     credentials: true,
   });
 
+  await app.register(fastifyCookie, {
+    secret: process.env.COOKIE_SECRET || process.env.JWT_SECRET || "fraseSuperSecretaDeCookie",
+  });
+
   await app.register(fastifyJwt, {
     secret: process.env.JWT_SECRET || "fraseSuperSecretaDeJWT",
+    cookie: {
+      cookieName: "token",
+      signed: false,
+    },
   });
 
   await app.register(fastifyTRPCPlugin, {

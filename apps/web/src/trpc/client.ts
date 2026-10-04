@@ -11,6 +11,12 @@ export const trpcClient = trpc.createClient({
     httpBatchLink({
       url: `${getApiUrl()}/trpc`,
       transformer: superjson,
+      fetch(url, options) {
+        return fetch(url, {
+          ...options,
+          credentials: "include",
+        });
+      },
       headers() {
         const token = getToken();
         if (token) {

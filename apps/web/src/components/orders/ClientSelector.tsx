@@ -48,7 +48,9 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
       createClientForm.reset();
     },
     onError: (error) => {
-      console.error("Error creando cliente:", error.message);
+      if (import.meta.env.DEV) {
+        console.error("Error creando cliente:", error.message);
+      }
     },
   });
 
