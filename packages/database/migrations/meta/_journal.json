@@ -8,6 +8,20 @@
       "when": 1788713998541,
       "tag": "0000_red_adam_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790700941926,
+      "tag": "0001_sour_weapon_omega",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790718341655,
+      "tag": "0002_lumpy_paper_doll",
+      "breakpoints": true
     }
   ]
 }

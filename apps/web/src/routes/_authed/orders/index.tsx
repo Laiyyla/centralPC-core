@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { trpc } from "@/trpc/client";
 import { openOrderPdf } from "@/lib/api";
@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -30,34 +37,109 @@ import {
   Eye,
   XCircle,
   CalendarIcon,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authed/orders/")({
   component: RouteComponent,
   staticData: {
-    title: "Órdenes",
+    title: "Órdenes de Servicio",
   },
 });
 
+export function getStatusBadge(estado: string) {
+  switch (estado) {
+    case "RECEPCIONADA":
+      return (
+        <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-200">
+          RECEPCIONADA
+        </Badge>
+      );
+    case "EN_DIAGNOSTICO":
+      return (
+        <Badge className="bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-200">
+          EN DIAGNÓSTICO
+        </Badge>
+      );
+    case "ESPERANDO_APROBACION":
+      return (
+        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-200">
+          ESPERANDO APROBACIÓN
+        </Badge>
+      );
+    case "EN_REPARACION":
+      return (
+        <Badge className="bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-200">
+          EN REPARACIÓN
+        </Badge>
+      );
+    case "COMPLETADA":
+      return (
+        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200">
+          COMPLETADA
+        </Badge>
+      );
+    case "ENTREGADA":
+      return (
+        <Badge className="bg-green-600/15 text-green-700 dark:text-green-400 border-green-200">
+          ENTREGADA
+        </Badge>
+      );
+    case "ANULADA":
+      return (
+        <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border-red-200">
+          ANULADA
+        </Badge>
+      );
+    default:
+      return <Badge variant="outline">{estado}</Badge>;
+  }
+}
+
 function RouteComponent() {
   const { user } = useAuthUser();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [techFilter, setTechFilter] = useState<string>("todos");
+
+  const { data: usuarios } = trpc.auth.listUsers.useQuery();
+
   const { data, isLoading, isError, error } = trpc.orders.list.useQuery({
     limit: 500,
     offset: 0,
+    estado: statusFilter !== "todos" ? (statusFilter as any) : undefined,
+    solo_sin_asignar: techFilter === "sin_asignar" ? true : undefined,
+    encargado_id:
+      techFilter === "mis_ordenes"
+        ? user?.id
+        : techFilter !== "todos" && techFilter !== "sin_asignar"
+          ? Number(techFilter)
+          : undefined,
   });
 
   const filtered = useMemo(() => {
     if (!data) return [];
-    const q = search.toLowerCase().trim();
+    const q = search
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
     if (!q) return data;
+    const normalize = (str: string) =>
+      str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
     return data.filter(
       (o) =>
         String(o.id).includes(q) ||
         String(o.correlativo ?? "")
           .toLowerCase()
           .includes(q) ||
-        o.cliente?.nombre?.toLowerCase().includes(q),
+        normalize(o.cliente?.nombre ?? "").includes(q) ||
+        normalize(o.encargado?.nombre ?? "").includes(q),
     );
   }, [data, search]);
 
@@ -67,11 +149,6 @@ function RouteComponent() {
     } catch (err) {
       console.error(err);
     }
-  }
-
-  async function handleAnular(ordenId: number) {
-    // TODO: implementar mutación de anulación
-    console.log("Anular orden", ordenId);
   }
 
   if (isLoading) {
@@ -96,10 +173,10 @@ function RouteComponent() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Listado de Órdenes
+            Órdenes de Servicio
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gestiona y monitorea todas las órdenes de servicio de CentralPC.
+            Gestiona, asigna técnicos y monitorea el avance de atención técnica.
           </p>
         </div>
         <Link to="/orders/new">
@@ -110,15 +187,63 @@ function RouteComponent() {
         </Link>
       </div>
 
-      {/* Búsqueda */}
-      <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por ID, correlativo o cliente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      {/* Filtros y Búsqueda */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="relative flex-1 w-full">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por ID, correlativo, cliente o técnico..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Filtro por Estado */}
+        <Select
+          value={statusFilter}
+          onValueChange={(val) => setStatusFilter(val ?? "todos")}
+        >
+          <SelectTrigger className="w-full sm:w-52">
+            <SelectValue placeholder="Estado Operativo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos los Estados</SelectItem>
+            <SelectItem value="RECEPCIONADA">Recepcionada</SelectItem>
+            <SelectItem value="EN_DIAGNOSTICO">En Diagnóstico</SelectItem>
+            <SelectItem value="ESPERANDO_APROBACION">
+              Esperando Aprobación
+            </SelectItem>
+            <SelectItem value="EN_REPARACION">En Reparación</SelectItem>
+            <SelectItem value="COMPLETADA">Completada</SelectItem>
+            <SelectItem value="ENTREGADA">Entregada</SelectItem>
+            <SelectItem value="ANULADA">Anulada</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Filtro por Técnico */}
+        <Select
+          value={techFilter}
+          onValueChange={(val) => setTechFilter(val ?? "todos")}
+        >
+          <SelectTrigger className="w-full sm:w-52">
+            <SelectValue placeholder="Encargado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos los Encargados</SelectItem>
+            {user && <SelectItem value="mis_ordenes">Mis Órdenes</SelectItem>}
+            <SelectItem value="sin_asignar">
+              Sin Asignar (Pendientes)
+            </SelectItem>
+            {usuarios
+              ?.filter((u) => u.rol === "tecnico" || u.rol === "admin")
+              .map((t) => (
+                <SelectItem key={t.id} value={String(t.id)}>
+                  {t.nombre}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tabla */}
@@ -126,10 +251,11 @@ function RouteComponent() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Orden / ID</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>Orden / N°</TableHead>
+              <TableHead>Estado Operativo</TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Fecha de Ingreso</TableHead>
+              <TableHead>Técnico Encargado</TableHead>
+              <TableHead>Fecha Ingreso</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead className="text-center">Acciones</TableHead>
             </TableRow>
@@ -138,10 +264,10 @@ function RouteComponent() {
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center text-muted-foreground py-12"
                 >
-                  No se encontraron órdenes.
+                  No se encontraron órdenes con los criterios especificados.
                 </TableCell>
               </TableRow>
             ) : (
@@ -158,28 +284,32 @@ function RouteComponent() {
                     </Link>
                     {orden.correlativo && (
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {orden.correlativo}
+                        N° {orden.correlativo}
                       </p>
                     )}
                   </TableCell>
 
                   {/* Estado */}
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        orden.estado === "EMITIDA"
-                          ? "border-primary text-primary"
-                          : "border-destructive text-destructive"
-                      }
-                    >
-                      {orden.estado === "EMITIDA" ? "EMITIDA" : "ANULADA"}
-                    </Badge>
-                  </TableCell>
+                  <TableCell>{getStatusBadge(orden.estado)}</TableCell>
 
                   {/* Cliente */}
                   <TableCell className="font-medium">
                     {orden.cliente?.nombre ?? "—"}
+                  </TableCell>
+
+                  {/* Técnico Encargado */}
+                  <TableCell>
+                    {orden.encargado ? (
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <UserCheck className="size-3.5 text-emerald-600" />
+                        <span>{orden.encargado.nombre}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded w-fit">
+                        <UserX className="size-3" />
+                        <span>Sin Asignar</span>
+                      </div>
+                    )}
                   </TableCell>
 
                   {/* Fecha */}
@@ -211,31 +341,21 @@ function RouteComponent() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link
-                            to="/orders/$orderId"
-                            params={{ orderId: String(orden.id) }}
-                          >
-                            <Eye className="size-4" />
-                            Ver detalle
-                          </Link>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            navigate({
+                              to: "/orders/$orderId",
+                              params: { orderId: String(orden.id) },
+                            })
+                          }
+                        >
+                          <Eye className="size-4 mr-2" />
+                          Ver Detalle / Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handlePdf(orden.id)}>
-                          <FileText className="size-4" />
-                          Ver PDF
+                          <FileText className="size-4 mr-2" />
+                          Imprimir PDF
                         </DropdownMenuItem>
-                        {user?.rol === "admin" && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleAnular(orden.id)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <XCircle className="size-4" />
-                              Anular orden
-                            </DropdownMenuItem>
-                          </>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

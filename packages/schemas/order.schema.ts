@@ -8,7 +8,15 @@ export const tipoEquipoEnum = z.enum([
   "OTROS",
 ]);
 
-export const estadoOrderEnum = z.enum(["EMITIDA", "ANULADA"]);
+export const estadoOrderEnum = z.enum([
+  "RECEPCIONADA",
+  "EN_DIAGNOSTICO",
+  "ESPERANDO_APROBACION",
+  "EN_REPARACION",
+  "COMPLETADA",
+  "ENTREGADA",
+  "ANULADA",
+]);
 
 export const detalleItemSchema = z.object({
   item_id: z.number().optional(),
@@ -46,8 +54,10 @@ export const listOrdersSchema = z
   .object({
     estado: estadoOrderEnum.optional(),
     cliente_id: z.number().optional(),
-    fecha_desde: z.iso.datetime().optional(),
-    fecha_hasta: z.iso.datetime().optional(),
+    encargado_id: z.number().optional(),
+    solo_sin_asignar: z.boolean().optional(),
+    fecha_desde: z.string().optional(),
+    fecha_hasta: z.string().optional(),
     limit: z.number().min(1).max(500).default(20),
     offset: z.number().min(0).default(0),
   })
@@ -55,6 +65,34 @@ export const listOrdersSchema = z
 
 export const getOrderByIdSchema = z.object({
   id: z.number(),
+});
+
+export const updateOrderSchema = z
+  .object({
+    id: z.number(),
+    observaciones: z.string().optional(),
+    equipos: z.array(equipoSchema),
+    detalle_suelto: z.array(detalleItemSchema).optional(),
+  })
+  .refine(
+    (data) => {
+      return data.equipos.length > 0 || (data.detalle_suelto?.length ?? 0) > 0;
+    },
+    {
+      message: "La orden debe tener almenos 1 equipo o 1 detalle suelto",
+    },
+  );
+
+export const changeOrderStatusSchema = z.object({
+  id: z.number(),
+  estado: estadoOrderEnum,
+  notas: z.string().optional(),
+});
+
+export const assignTechnicianSchema = z.object({
+  id: z.number(),
+  encargado_id: z.number().nullable(),
+  notas: z.string().optional(),
 });
 
 export const anularOrderSchema = z.object({
@@ -70,7 +108,11 @@ const equipoBaseSchema = equipoSchema.pick({
 
 export type ListOrdersInput = z.infer<typeof listOrdersSchema>;
 export type GetOrderByIdInput = z.infer<typeof getOrderByIdSchema>;
+export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
+export type ChangeOrderStatusInput = z.infer<typeof changeOrderStatusSchema>;
+export type AssignTechnicianInput = z.infer<typeof assignTechnicianSchema>;
 export type anularOrdenInput = z.infer<typeof anularOrderSchema>;
 export type EquipoBase = z.infer<typeof equipoBaseSchema>;
 export type TipoEquipo = z.infer<typeof tipoEquipoEnum>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+

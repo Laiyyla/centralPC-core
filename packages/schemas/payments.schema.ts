@@ -26,4 +26,4 @@ export const getPagoByIdSchema = z.object({
 
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 export type AnularPagoInput = z.infer<typeof anularPagoSchema>;
-export type GetPagoById = z.infer<typeof getPagoByIdSchema>;
+export type GetPagoByIdInput = z.infer<typeof getPagoByIdSchema>;

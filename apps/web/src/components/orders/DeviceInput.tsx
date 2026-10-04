@@ -23,7 +23,9 @@ import {
   Printer,
   Smartphone,
   HelpCircle,
+  AlertCircle,
 } from "lucide-react";
+import { Alert, AlertDescription } from "../ui/alert";
 
 type DeviceInputProps = {
   onEquiposChange: (equipos: EquipoBase[]) => void;
@@ -52,9 +54,15 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
     descripcion: "",
     detalle: [],
   });
+  const [error, setError] = useState<string | null>(null);
 
   function agregarEquipo() {
+    setError("");
     if (!nuevoEquipo.descripcion.trim()) {
+      return;
+    }
+    if (nuevoEquipo.detalle.length === 0) {
+      setError("El equipo debe de tener Almenos 1 item");
       return;
     }
     const equipoAdded = [...equipos, nuevoEquipo];
@@ -135,6 +143,12 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
               setNuevoEquipo((prev) => ({ ...prev, detalle: items }))
             }
           />
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="size-4"></AlertCircle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex justify-end pt-2">
             <Button

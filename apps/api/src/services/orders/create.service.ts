@@ -16,10 +16,14 @@ import {
   inArray,
 } from "@central-pc/database";
 
+interface CreateOrderContext {
+  userId: number;
+}
+
 export class CreateOrderService {
   constructor(private db: Database) {}
 
-  async execute(input: CreateOrderInput) {
+  async execute(input: CreateOrderInput, ctx: CreateOrderContext) {
     const sucursalId = Number(process.env.SUCURSAL_ID);
     if (!sucursalId) {
       throw new DomainError("Sucursal no configurada");
@@ -106,7 +110,7 @@ export class CreateOrderService {
           sucursal_id: sucursalId,
           correlativo: nuevoCorrelativo,
           cliente_id: input.cliente_id ?? null,
-          user_id: this.user?.id,
+          user_id: ctx.userId,
           estado: "RECEPCIONADA",
           total: totalCalculado.toString(),
           observaciones: input.observaciones ?? null,

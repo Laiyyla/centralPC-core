@@ -117,7 +117,7 @@ function CatalogPage() {
             className="pl-9"
           />
         </div>
-        <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
+        <Select value={tipoFiltro} onValueChange={(v) => setTipoFiltro(v ?? "todos")}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>

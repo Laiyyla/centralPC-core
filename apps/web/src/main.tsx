@@ -12,6 +12,13 @@ export const router = createRouter({
   routeTree: routeTree,
   defaultPreload: "intent",
   scrollRestoration: true,
+  defaultNotFoundComponent: () => {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center">
+        <h1>Que fue mano? What r u lookin for?</h1>
+      </div>
+    );
+  },
 });
 
 // const rootElement = document.getElementById("app");
