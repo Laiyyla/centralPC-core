@@ -1,31 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { trpc, trpcClient } from "./trpc/client";
 import { routeTree } from "./routeTree.gen";
 import { handleUnauthorized } from "./lib/api";
+import { queryClient, registerUnauthorizedHandler } from "./lib/query-client";
 import "./index.css";
 
-const handleGlobalError = (error: unknown) => {
-  const errObj = error as any;
-  if (
-    errObj?.data?.code === "UNAUTHORIZED" ||
-    errObj?.message?.includes("UNAUTHORIZED") ||
-    errObj?.status === 401
-  ) {
-    handleUnauthorized();
-  }
-};
-
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: handleGlobalError,
-  }),
-  mutationCache: new MutationCache({
-    onError: handleGlobalError,
-  }),
-});
+registerUnauthorizedHandler(handleUnauthorized);
 
 export const router = createRouter({
   routeTree: routeTree,

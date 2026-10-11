@@ -14,6 +14,8 @@ export class SearchClientService {
         or(
           ilike(clientTable.nombre, `%${sanitizedQuery}%`),
           ilike(clientTable.telefono, `%${sanitizedQuery}%`),
+          ilike(clientTable.dni, `%${sanitizedQuery}%`),
+          ilike(clientTable.ruc, `%${sanitizedQuery}%`),
         ),
       )
       .limit(input.limit);

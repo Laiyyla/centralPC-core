@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPaymentSchema } from "@central-pc/schemas";
@@ -43,6 +44,15 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
     },
   });
 
+  // Sincronizar monto cuando montoPendiente cargue o cambie
+  useEffect(() => {
+    if (montoPendiente !== undefined && montoPendiente > 0) {
+      form.setValue("monto", montoPendiente, {
+        shouldValidate: true,
+      });
+    }
+  }, [montoPendiente, form]);
+
   const selectedMetodo = form.watch("metodo");
   const utils = trpc.useUtils();
 
@@ -56,6 +66,7 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
       form.reset({
         order_id: orderId,
         metodo: metodoPagoEnum.options[0],
+        monto: 0,
       });
     },
     onError: (error) => {
@@ -69,10 +80,22 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
   });
 
   function onSubmit(values: CreatePaymentInput) {
+    const montoNum = Number(values.monto);
+    if (isNaN(montoNum) || montoNum <= 0) {
+      toast.error("El monto a registrar debe ser mayor a 0");
+      return;
+    }
+    if (montoPendiente !== undefined && montoNum > montoPendiente + 0.001) {
+      toast.error(
+        `El monto (S/ ${montoNum.toFixed(2)}) no puede exceder el saldo pendiente (S/ ${montoPendiente.toFixed(2)})`,
+      );
+      return;
+    }
+
     paymentMutation.mutate({
       ...values,
       order_id: Number(orderId),
-      monto: Number(values.monto),
+      monto: montoNum,
     });
   }
 
@@ -112,9 +135,26 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
 
       {/* Monto */}
       <div className="flex flex-col gap-2">
-        <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-          Monto a Registrar (S/)
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">
+            Monto a Registrar (S/)
+          </Label>
+          {montoPendiente !== undefined && (
+            <button
+              type="button"
+              onClick={() => {
+                if (montoPendiente > 0) {
+                  form.setValue("monto", montoPendiente, {
+                    shouldValidate: true,
+                  });
+                }
+              }}
+              className="text-xs text-primary hover:underline font-medium"
+            >
+              Saldo pendiente: S/ {montoPendiente.toFixed(2)}
+            </button>
+          )}
+        </div>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
             S/
@@ -123,8 +163,11 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
             {...form.register("monto", { valueAsNumber: true })}
             type="number"
             step="0.01"
+            min={0.01}
+            max={montoPendiente !== undefined && montoPendiente > 0 ? montoPendiente : undefined}
             placeholder="0.00"
             className="pl-8"
+            disabled={montoPendiente !== undefined && montoPendiente <= 0}
           />
         </div>
         {form.formState.errors.monto && (
@@ -133,6 +176,12 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
           </p>
         )}
       </div>
+
+      {montoPendiente !== undefined && montoPendiente <= 0 && (
+        <p className="text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded border border-emerald-200 text-center font-medium">
+          Esta orden no tiene saldo pendiente por cobrar.
+        </p>
+      )}
 
       {/* Error mutation */}
       {paymentMutation.isError && (
@@ -144,12 +193,17 @@ export function PaymentForm({ orderId, montoPendiente }: PaymentFormProps) {
       {/* Submit */}
       <Button
         type="submit"
-        disabled={paymentMutation.isPending}
+        disabled={
+          paymentMutation.isPending ||
+          (montoPendiente !== undefined && montoPendiente <= 0)
+        }
         className="w-full"
       >
         {paymentMutation.isPending
           ? "Registrando..."
-          : "Confirmar y Registrar Pago"}
+          : montoPendiente !== undefined && montoPendiente <= 0
+            ? "Orden Totalmente Pagada"
+            : "Confirmar y Registrar Pago"}
       </Button>
     </form>
   );

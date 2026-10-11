@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/trpc/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
   createClientSchema,
   type CreateClientInput,
@@ -23,6 +24,7 @@ type ClienteResumen = {
 
 export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
   const [clienteSeleccionado, setClienteSeleccionado] =
     useState<ClienteResumen | null>(null);
   const [modoCrear, setModoCrear] = useState(false);
@@ -32,8 +34,8 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   });
 
   const { data: resultados, isLoading } = trpc.clients.search.useQuery(
-    { query },
-    { enabled: query.length >= 2 },
+    { query: debouncedQuery.trim() },
+    { enabled: debouncedQuery.trim().length >= 2 },
   );
 
   const crearCliente = trpc.clients.create.useMutation({

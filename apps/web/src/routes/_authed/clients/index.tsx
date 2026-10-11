@@ -1,6 +1,7 @@
 import { trpc } from "@/trpc/client";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { SearchIcon, EyeIcon } from "lucide-react";
+import { SearchIcon, EyeIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authed/clients/")({
   component: ClientsPage,
@@ -24,31 +25,27 @@ export const Route = createFileRoute("/_authed/clients/")({
 
 function ClientsPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, isError } = trpc.clients.list.useQuery({});
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
 
-  const filtrados = useMemo(() => {
-    if (!data) return [];
-    const q = search
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    if (!q) return data;
-    const normalize = (str: string) =>
-      str
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    return data.filter(
-      (c) =>
-        normalize(c.nombre).includes(q) ||
-        c.telefono.includes(q) ||
-        normalize(c.dni ?? "").includes(q) ||
-        normalize(c.ruc ?? "").includes(q),
-    );
-  }, [data, search]);
+  const debouncedSearch = useDebounce(search, 300);
+  const isSearching = debouncedSearch.trim().length >= 2;
 
-  if (isLoading)
+  const listQuery = trpc.clients.list.useQuery(
+    { limit: pageSize, offset: page * pageSize },
+    { enabled: !isSearching },
+  );
+
+  const searchQuery = trpc.clients.search.useQuery(
+    { query: debouncedSearch.trim(), limit: 50 },
+    { enabled: isSearching },
+  );
+
+  const clientes = isSearching ? searchQuery.data : listQuery.data;
+  const isLoading = isSearching ? searchQuery.isLoading : listQuery.isLoading;
+  const isError = isSearching ? searchQuery.isError : listQuery.isError;
+
+  if (isLoading && !clientes)
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
         Cargando clientes...
@@ -83,13 +80,17 @@ function ClientsPage() {
           <Input
             placeholder="Buscar por nombre, teléfono, DNI o RUC..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
             className="pl-9"
           />
         </div>
         <span className="text-sm text-muted-foreground shrink-0">
-          Mostrando {filtrados.length} cliente
-          {filtrados.length !== 1 ? "s" : ""}
+          {isSearching
+            ? `Resultados: ${clientes?.length ?? 0}`
+            : `Página ${page + 1}`}
         </span>
       </div>
 
@@ -106,17 +107,19 @@ function ClientsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtrados.length === 0 ? (
+            {!clientes || clientes.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
                   className="text-center text-muted-foreground py-12"
                 >
-                  No se encontraron clientes.
+                  {isSearching
+                    ? `No se encontraron clientes para "${debouncedSearch.trim()}".`
+                    : "No hay clientes registrados en esta página."}
                 </TableCell>
               </TableRow>
             ) : (
-              filtrados.map((cliente) => (
+              clientes.map((cliente) => (
                 <TableRow key={cliente.id}>
                   <TableCell className="font-medium">
                     {cliente.nombre}
@@ -154,11 +157,42 @@ function ClientsPage() {
           </TableBody>
         </Table>
 
-        {filtrados.length > 0 && (
-          <div className="px-4 py-3 border-t text-sm text-muted-foreground">
-            Mostrando {filtrados.length} de {data?.length ?? 0} clientes
-          </div>
-        )}
+        {/* Paginación y resumen */}
+        <div className="flex items-center justify-between px-4 py-3 border-t text-sm text-muted-foreground">
+          {isSearching ? (
+            <span>Búsqueda en servidor: {clientes?.length ?? 0} resultados</span>
+          ) : (
+            <span>
+              Página {page + 1} — {clientes?.length ?? 0} clientes cargados
+            </span>
+          )}
+
+          {!isSearching && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0 || isLoading}
+              >
+                <ChevronLeft className="size-4 mr-1" />
+                Anterior
+              </Button>
+              <span className="text-xs font-semibold px-2">
+                Pág. {page + 1}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!clientes || clientes.length < pageSize || isLoading}
+              >
+                Siguiente
+                <ChevronRight className="size-4 ml-1" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

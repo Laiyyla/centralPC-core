@@ -1,5 +1,6 @@
 import { trpc } from "@/trpc/client";
 import { useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,14 +29,15 @@ const tipoConfig: Record<string, { label: string; className: string }> = {
 export function CatalogItemSelector({ onDetalleChange }: ItemInputProp) {
   const [items, setItems] = useState<SelectedItem[]>([]);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   const { data: resultados, isLoading } = trpc.catalog.list.useQuery(
     { includeInactive: false },
-    { enabled: search.length >= 2 },
+    { enabled: debouncedSearch.trim().length >= 2 },
   );
 
   const catalogoFiltrado = resultados?.filter((item) =>
-    item.nombre?.toLowerCase().includes(search.toLowerCase()),
+    item.nombre?.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
   function notifyChange(newItems: SelectedItem[]) {
