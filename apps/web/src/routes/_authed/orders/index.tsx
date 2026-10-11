@@ -37,6 +37,8 @@ import {
   CalendarIcon,
   UserCheck,
   UserX,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authed/orders/")({
@@ -101,12 +103,14 @@ function RouteComponent() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [techFilter, setTechFilter] = useState<string>("todos");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
 
   const { data: usuarios } = trpc.auth.listUsers.useQuery();
 
   const { data, isLoading, isError, error } = trpc.orders.list.useQuery({
-    limit: 500,
-    offset: 0,
+    limit: pageSize,
+    offset: page * pageSize,
     estado: statusFilter !== "todos" ? (statusFilter as any) : undefined,
     solo_sin_asignar: techFilter === "sin_asignar" ? true : undefined,
     encargado_id:
@@ -202,7 +206,10 @@ function RouteComponent() {
         {/* Filtro por Estado */}
         <Select
           value={statusFilter}
-          onValueChange={(val) => setStatusFilter(val ?? "todos")}
+          onValueChange={(val) => {
+            setStatusFilter(val ?? "todos");
+            setPage(0);
+          }}
         >
           <SelectTrigger className="w-full sm:w-52">
             <SelectValue placeholder="Estado Operativo" />
@@ -224,7 +231,10 @@ function RouteComponent() {
         {/* Filtro por Técnico */}
         <Select
           value={techFilter}
-          onValueChange={(val) => setTechFilter(val ?? "todos")}
+          onValueChange={(val) => {
+            setTechFilter(val ?? "todos");
+            setPage(0);
+          }}
         >
           <SelectTrigger className="w-full sm:w-52">
             <SelectValue placeholder="Encargado" />
@@ -365,12 +375,55 @@ function RouteComponent() {
           </TableBody>
         </Table>
 
-        {/* Footer de tabla */}
-        {filtered.length > 0 && (
-          <div className="px-4 py-3 border-t text-sm text-muted-foreground">
-            Mostrando {filtered.length} de {data?.length ?? 0} órdenes
+        {/* Footer de paginación */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t text-sm text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <span>
+              Página {page + 1} — {filtered.length} órdenes en vista
+            </span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span>Por pág:</span>
+              <select
+                aria-label="Órdenes por página"
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(0);
+                }}
+                className="rounded border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
           </div>
-        )}
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0 || isLoading}
+            >
+              <ChevronLeft className="size-4 mr-1" />
+              Anterior
+            </Button>
+            <span className="text-xs font-semibold px-2">
+              Pág. {page + 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={!data || data.length < pageSize || isLoading}
+            >
+              Siguiente
+              <ChevronRight className="size-4 ml-1" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { trpc } from "@/trpc/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getStatusBadge } from "../orders/index";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -176,16 +176,7 @@ function RouteComponent() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              orden.estado === "ANULADA"
-                                ? "border-destructive text-destructive"
-                                : "border-primary text-primary"
-                            }
-                          >
-                            {orden.estado === "ANULADA" ? "Anulada" : "Emitida"}
-                          </Badge>
+                          {getStatusBadge(orden.estado)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

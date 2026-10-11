@@ -110,7 +110,9 @@ export function EditOrderModal({
 }: EditOrderModalProps) {
   const [observaciones, setObservaciones] = useState(order.observaciones ?? "");
   const [equipos, setEquipos] = useState<EquipoForm[]>([]);
+  const [detalleSuelto, setDetalleSuelto] = useState<ItemDetalleForm[]>([]);
   const [searches, setSearches] = useState<Record<number, string>>({});
+  const [searchDetalleSuelto, setSearchDetalleSuelto] = useState("");
 
   const { data: catalogoItems } = trpc.catalog.list.useQuery(
     { includeInactive: false },
@@ -134,7 +136,16 @@ export function EditOrderModal({
             })) ?? [],
         })) ?? [],
       );
+      setDetalleSuelto(
+        order.detalle_suelto?.map((d) => ({
+          item_id: d.item_id ?? undefined,
+          nombre_personalizado: d.nombre_snap,
+          precio_unitario: Number(d.precio_unit_snap) || 0,
+          cantidad: d.cantidad,
+        })) ?? [],
+      );
       setSearches({});
+      setSearchDetalleSuelto("");
     }
   }, [order, open]);
 
@@ -232,9 +243,50 @@ export function EditOrderModal({
     });
   }
 
+  function handleAgregarItemCatalogoSuelto(item: {
+    id: number;
+    nombre: string;
+    precio_ref: string | number;
+  }) {
+    setDetalleSuelto((prev) => {
+      const existing = prev.find((d) => d.item_id === item.id);
+      if (existing) {
+        return prev.map((d) =>
+          d.item_id === item.id ? { ...d, cantidad: d.cantidad + 1 } : d,
+        );
+      } else {
+        return [
+          ...prev,
+          {
+            item_id: item.id,
+            nombre_personalizado: item.nombre,
+            precio_unitario: Number(item.precio_ref) || 0,
+            cantidad: 1,
+          },
+        ];
+      }
+    });
+    setSearchDetalleSuelto("");
+  }
+
+  function handleAgregarItemPersonalizadoSuelto() {
+    setDetalleSuelto((prev) => [
+      ...prev,
+      {
+        nombre_personalizado: "",
+        precio_unitario: 0,
+        cantidad: 1,
+      },
+    ]);
+  }
+
+  function handleQuitarItemSuelto(itemIndex: number) {
+    setDetalleSuelto((prev) => prev.filter((_, i) => i !== itemIndex));
+  }
+
   function handleSave() {
-    if (equipos.length === 0) {
-      toast.error("Debe ingresar al menos un equipo");
+    if (equipos.length === 0 && detalleSuelto.length === 0) {
+      toast.error("La orden debe tener al menos un equipo o un ítem adicional");
       return;
     }
     for (const eq of equipos) {
@@ -255,6 +307,25 @@ export function EditOrderModal({
           );
           return;
         }
+        if (item.precio_unitario <= 0) {
+          toast.error(
+            `El precio del ítem "${item.nombre_personalizado}" en el equipo "${eq.descripcion}" debe ser mayor a 0`,
+          );
+          return;
+        }
+      }
+    }
+
+    for (const item of detalleSuelto) {
+      if (!item.nombre_personalizado?.trim()) {
+        toast.error("Debe especificar el nombre para todos los ítems adicionales");
+        return;
+      }
+      if (item.precio_unitario <= 0) {
+        toast.error(
+          `El precio del ítem adicional "${item.nombre_personalizado}" debe ser mayor a 0`,
+        );
+        return;
       }
     }
 
@@ -262,19 +333,34 @@ export function EditOrderModal({
       id: order.id,
       observaciones,
       equipos,
+      detalle_suelto: detalleSuelto,
     });
   }
 
   // Recálculo del total
-  const totalCalculado = equipos.reduce(
-    (accEq, eq) =>
-      accEq +
-      eq.detalle.reduce(
-        (accItem, item) => accItem + item.precio_unitario * item.cantidad,
-        0,
-      ),
-    0,
-  );
+  const totalCalculado =
+    equipos.reduce(
+      (accEq, eq) =>
+        accEq +
+        eq.detalle.reduce(
+          (accItem, item) => accItem + item.precio_unitario * item.cantidad,
+          0,
+        ),
+      0,
+    ) +
+    detalleSuelto.reduce(
+      (accItem, item) => accItem + item.precio_unitario * item.cantidad,
+      0,
+    );
+
+  const catalogoFiltradoSuelto =
+    searchDetalleSuelto.trim().length >= 2
+      ? catalogoItems?.filter((item) =>
+          item.nombre
+            ?.toLowerCase()
+            .includes(searchDetalleSuelto.toLowerCase()),
+        )
+      : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -573,6 +659,170 @@ export function EditOrderModal({
                 </Card>
               );
             })}
+          </div>
+
+          {/* Ítems Sueltos / Adicionales */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold text-base flex items-center gap-2">
+                <Package className="size-4 text-primary" />
+                Ítems Sueltos y Adicionales ({detalleSuelto.length})
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleAgregarItemPersonalizadoSuelto}
+              >
+                <Plus className="size-4 mr-1" />
+                Ítem Personalizado
+              </Button>
+            </div>
+
+            <Card className="bg-surface border">
+              <CardContent className="space-y-4 pt-4">
+                {/* Buscador de catálogo para ítems sueltos */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase">
+                    Buscar en Catálogo (Accesorios, Repuestos sueltos, Servicios)
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Input
+                      value={searchDetalleSuelto}
+                      onChange={(e) => setSearchDetalleSuelto(e.target.value)}
+                      placeholder="Escribe al menos 2 letras para buscar en el catálogo..."
+                      className="pl-9 text-sm"
+                    />
+                  </div>
+
+                  {/* Resultados de búsqueda */}
+                  {searchDetalleSuelto.trim().length >= 2 && (
+                    <div className="rounded-md border bg-muted/20 max-h-44 overflow-y-auto">
+                      {catalogoFiltradoSuelto?.length === 0 ? (
+                        <p className="p-2.5 text-xs text-muted-foreground text-center">
+                          No se encontraron ítems en el catálogo con "{searchDetalleSuelto}".
+                        </p>
+                      ) : (
+                        <ul className="divide-y text-sm">
+                          {catalogoFiltradoSuelto?.map((catItem) => {
+                            const badgeCfg =
+                              tipoItemBadgeConfig[catItem.tipo_item];
+                            return (
+                              <li
+                                key={catItem.id}
+                                onClick={() =>
+                                  handleAgregarItemCatalogoSuelto(catItem)
+                                }
+                                className="flex items-center justify-between p-2 hover:bg-primary/10 cursor-pointer transition-colors"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Package className="size-3.5 text-muted-foreground shrink-0" />
+                                  <span className="font-medium text-xs truncate">
+                                    {catItem.nombre}
+                                  </span>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-1 py-0 ${badgeCfg?.className}`}
+                                  >
+                                    {badgeCfg?.label ?? catItem.tipo_item}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-xs font-bold text-primary">
+                                    S/{" "}
+                                    {Number(catItem.precio_ref).toFixed(2)}
+                                  </span>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="size-6"
+                                  >
+                                    <Plus className="size-3.5" />
+                                  </Button>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Lista de ítems sueltos */}
+                <div className="space-y-2 pt-1">
+                  {detalleSuelto.length === 0 ? (
+                    <p className="text-xs text-muted-foreground bg-muted/20 p-2.5 rounded border text-center">
+                      No hay ítems sueltos asignados a esta orden. Puedes buscar en el catálogo o agregar uno personalizado.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {detalleSuelto.map((item, itemIdx) => (
+                        <div
+                          key={itemIdx}
+                          className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 min-w-0 bg-muted/10 p-1.5 rounded border"
+                        >
+                          <Input
+                            className="text-sm min-w-0 bg-background"
+                            placeholder="Nombre o descripción"
+                            disabled={!!item.item_id}
+                            value={item.nombre_personalizado ?? ""}
+                            onChange={(e) => {
+                              const updated = [...detalleSuelto];
+                              updated[itemIdx].nombre_personalizado =
+                                e.target.value;
+                              setDetalleSuelto(updated);
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            className="w-16 text-sm bg-background"
+                            placeholder="Cant."
+                            min={1}
+                            value={item.cantidad}
+                            onChange={(e) => {
+                              const updated = [...detalleSuelto];
+                              updated[itemIdx].cantidad =
+                                Number(e.target.value) || 1;
+                              setDetalleSuelto(updated);
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            step="0.50"
+                            className="w-24 text-sm bg-background"
+                            placeholder="S/ Precio"
+                            value={item.precio_unitario}
+                            onChange={(e) => {
+                              const updated = [...detalleSuelto];
+                              updated[itemIdx].precio_unitario =
+                                Number(e.target.value) || 0;
+                              setDetalleSuelto(updated);
+                            }}
+                          />
+                          <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
+                            S/{" "}
+                            {(item.precio_unitario * item.cantidad).toFixed(
+                              2,
+                            )}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-muted-foreground hover:text-destructive shrink-0"
+                            onClick={() => handleQuitarItemSuelto(itemIdx)}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Resumen Total */}

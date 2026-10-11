@@ -1,3 +1,5 @@
+import { queryClient } from "./query-client";
+
 export function getApiUrl(): string {
   const url = import.meta.env.VITE_API_URL;
   if (!url && import.meta.env.PROD) {
@@ -50,6 +52,7 @@ export function isUserAuthenticated(): boolean {
 
 export function handleUnauthorized(): void {
   removeToken();
+  queryClient.clear();
   if (window.location.pathname !== "/login") {
     window.location.href = "/login";
   }
@@ -79,9 +82,16 @@ export async function openOrderPdf(orderId: number): Promise<void> {
 
   const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
-  window.open(blobUrl, "_blank", "noopener,noreferrer");
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.download = `orden-${orderId}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
   setTimeout(() => {
     URL.revokeObjectURL(blobUrl);
-  }, 10000);
+  }, 60000);
 }

@@ -5,6 +5,7 @@ import { loginSchema } from "@central-pc/schemas";
 import type { LoginInput } from "@central-pc/schemas";
 import { trpc } from "@/trpc/client";
 import { isUserAuthenticated, setToken } from "@/lib/api";
+import { queryClient } from "@/lib/query-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,7 @@ function LoginPage() {
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
+      queryClient.clear();
       setToken(data.token);
       toast.success("Sesión Iniciada", {
         description: `Bienvenido ${data.user.nombre}`,
