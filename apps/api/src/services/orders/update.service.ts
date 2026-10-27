@@ -123,7 +123,9 @@ export class UpdateOrderService {
         .delete(deviceTable)
         .where(eq(deviceTable.order_id, orden.id));
 
-      // Insertar nuevos equipos y sus detalles
+      // Insertar nuevos equipos y acumular detalles para inserción batch
+      const detailsToInsert: Array<typeof orderDetailTable.$inferInsert> = [];
+
       for (const equipoData of input.equipos) {
         const [nuevoEquipo] = await tx
           .insert(deviceTable)
@@ -137,7 +139,7 @@ export class UpdateOrderService {
 
         for (const item of equipoData.detalle) {
           const catalogItem = item.item_id ? catalogMap.get(item.item_id) : null;
-          await tx.insert(orderDetailTable).values({
+          detailsToInsert.push({
             order_id: orden.id,
             equipo_id: nuevoEquipo.id,
             item_id: item.item_id ?? null,
@@ -154,7 +156,7 @@ export class UpdateOrderService {
       if (input.detalle_suelto) {
         for (const item of input.detalle_suelto) {
           const catalogItem = item.item_id ? catalogMap.get(item.item_id) : null;
-          await tx.insert(orderDetailTable).values({
+          detailsToInsert.push({
             order_id: orden.id,
             equipo_id: null,
             item_id: item.item_id ?? null,
@@ -165,6 +167,10 @@ export class UpdateOrderService {
             subtotal: (item.precio_unitario * item.cantidad).toFixed(2),
           });
         }
+      }
+
+      if (detailsToInsert.length > 0) {
+        await tx.insert(orderDetailTable).values(detailsToInsert);
       }
 
 

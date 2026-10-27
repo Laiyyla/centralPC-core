@@ -5,6 +5,12 @@ const envSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(16, "El secret JWT debe ser de almenos 16 caracteres"),
+  COOKIE_SECRET: z
+    .string()
+    .min(
+      16,
+      "La frase para el Cookie Secret debe ser de almenos 16 caracteres",
+    ),
   SERVER_PORT: z.coerce.number().default(3000),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   NODE_ENV: z

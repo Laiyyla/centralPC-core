@@ -6,18 +6,32 @@ import { OrderServices } from "./orders/index.js";
 import { PaymentsServices } from "./payments/index.js";
 
 export class AppServices {
-  readonly auth: AuthServices;
-  readonly catalog: CatalogServices;
-  readonly clients: ClientServices;
-  readonly orders: OrderServices;
-  readonly payments: PaymentsServices;
+  private _auth?: AuthServices;
+  private _catalog?: CatalogServices;
+  private _clients?: ClientServices;
+  private _orders?: OrderServices;
+  private _payments?: PaymentsServices;
 
-  constructor(ctx: ServiceContext) {
-    this.auth = new AuthServices(ctx);
-    this.catalog = new CatalogServices(ctx);
-    this.clients = new ClientServices(ctx);
-    this.orders = new OrderServices(ctx);
-    this.payments = new PaymentsServices(ctx);
+  constructor(private ctx: ServiceContext) {}
+
+  get auth(): AuthServices {
+    return (this._auth ??= new AuthServices(this.ctx));
+  }
+
+  get catalog(): CatalogServices {
+    return (this._catalog ??= new CatalogServices(this.ctx));
+  }
+
+  get clients(): ClientServices {
+    return (this._clients ??= new ClientServices(this.ctx));
+  }
+
+  get orders(): OrderServices {
+    return (this._orders ??= new OrderServices(this.ctx));
+  }
+
+  get payments(): PaymentsServices {
+    return (this._payments ??= new PaymentsServices(this.ctx));
   }
 }
 

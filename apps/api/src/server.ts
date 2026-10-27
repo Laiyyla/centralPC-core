@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import fastify from "fastify";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import SuperJSON from "superjson";
@@ -9,21 +8,25 @@ import fastifyCookie from "@fastify/cookie";
 import { appRouter } from "./routers/_app.js";
 import { createContext } from "./context.js";
 import { pdfRoutes } from "./routes/pdf.routes.js";
-import "./env.js";
-
-dotenv.config();
+import { env } from "./env.js";
 
 const app = fastify({
   logger: {
     level: "info",
-    transport: {
-      target: "pino-pretty",
-      options: {
-        translateTime: "SYS:standard",
-        ignore: "pid,hostname",
+    ...(env.NODE_ENV !== "production" && {
+      transport: {
+        target: "pino-pretty",
+        options: {
+          translateTime: "SYS:standard",
+          ignore: "pid,hostname",
+        },
       },
-    },
-    redact: ["req.headers.authorization", "req.headers.cookie", "body.password"],
+    }),
+    redact: [
+      "req.headers.authorization",
+      "req.headers.cookie",
+      "body.password",
+    ],
   },
 });
 
@@ -32,9 +35,7 @@ async function main() {
     contentSecurityPolicy: false, // Allows flexible API & PDF rendering
   });
 
-  const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
-    : ["http://localhost:5173", "http://localhost:3000"];
+  const allowedOrigins = env.CORS_ORIGIN;
 
   await app.register(fastifyCors, {
     origin: allowedOrigins,
@@ -42,11 +43,11 @@ async function main() {
   });
 
   await app.register(fastifyCookie, {
-    secret: process.env.COOKIE_SECRET || process.env.JWT_SECRET || "fraseSuperSecretaDeCookie",
+    secret: env.COOKIE_SECRET,
   });
 
   await app.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || "fraseSuperSecretaDeJWT",
+    secret: env.JWT_SECRET,
     cookie: {
       cookieName: "token",
       signed: false,
@@ -64,7 +65,9 @@ async function main() {
 
   await app.register(pdfRoutes);
 
-  const PORT = Number(process.env.SERVER_PORT);
+  app.get("/health", async () => ({ status: "ok" }));
+
+  const PORT = Number(env.SERVER_PORT);
 
   await app.listen({ port: PORT, host: "0.0.0.0" });
 

@@ -12,7 +12,10 @@ export class AnularPagoService {
 
   async execute(input: AnularPagoInput, ctx: AnularPagoContext) {
     const [pago] = await this.db
-      .select()
+      .select({
+        id: paymentTable.id,
+        estado: paymentTable.estado,
+      })
       .from(paymentTable)
       .where(eq(paymentTable.id, input.id));
     if (!pago) {

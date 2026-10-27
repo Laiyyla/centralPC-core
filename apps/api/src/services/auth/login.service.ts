@@ -28,7 +28,13 @@ export class LoginService {
       );
     }
     const [user] = await this.db
-      .select()
+      .select({
+        id: usersTable.id,
+        nombre: usersTable.nombre,
+        rol: usersTable.rol,
+        password_hash: usersTable.password_hash,
+        isActive: usersTable.isActive,
+      })
       .from(usersTable)
       .where(eq(usersTable.user_name, input.user_name));
 

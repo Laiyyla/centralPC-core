@@ -12,7 +12,10 @@ export class AnularOrderService {
 
   async execute(input: anularOrdenInput, ctx: AnularOrderContext) {
     const [orden] = await this.db
-      .select()
+      .select({
+        id: orderTable.id,
+        estado: orderTable.estado,
+      })
       .from(orderTable)
       .where(eq(orderTable.id, input.id));
     if (!orden) {

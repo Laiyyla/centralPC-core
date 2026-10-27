@@ -8,14 +8,15 @@ export class CreateCatalogService {
 
   async execute(input: CreateItemInput) {
     const existingItem = await this.db
-      .select()
+      .select({ id: catalogTable.id })
       .from(catalogTable)
       .where(
         and(
           eq(catalogTable.nombre, input.nombre),
           eq(catalogTable.tipo_item, input.tipo),
         ),
-      );
+      )
+      .limit(1);
 
     if (existingItem.length > 0) {
       throw new ConflictError("El item ya Existe");

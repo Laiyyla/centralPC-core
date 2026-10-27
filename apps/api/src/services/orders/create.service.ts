@@ -117,6 +117,8 @@ export class CreateOrderService {
         })
         .returning();
 
+      const allDetailsToInsert: Array<typeof orderDetailTable.$inferInsert> = [];
+
       for (const equipo of input.equipos) {
         const [device] = await tx
           .insert(deviceTable)
@@ -128,7 +130,7 @@ export class CreateOrderService {
           })
           .returning();
 
-        const deviceDetailsToInsert = equipo.detalle.map((item) => {
+        for (const item of equipo.detalle) {
           let nombreSnapshot =
             item.nombre_personalizado ?? "Item personalizado";
           let itemIdFinal: number | null = null;
@@ -139,7 +141,7 @@ export class CreateOrderService {
             itemIdFinal = catalogItem.id;
           }
 
-          return {
+          allDetailsToInsert.push({
             order_id: orden.id,
             equipo_id: device.id,
             item_id: itemIdFinal,
@@ -147,16 +149,12 @@ export class CreateOrderService {
             precio_unit_snap: item.precio_unitario.toString(),
             cantidad: item.cantidad,
             subtotal: (item.precio_unitario * item.cantidad).toString(),
-          };
-        });
-
-        if (deviceDetailsToInsert.length > 0) {
-          await tx.insert(orderDetailTable).values(deviceDetailsToInsert);
+          });
         }
       }
 
       if (input.detalle_suelto && input.detalle_suelto.length > 0) {
-        const looseDetailsToInsert = input.detalle_suelto.map((item) => {
+        for (const item of input.detalle_suelto) {
           let nombreSnapshot =
             item.nombre_personalizado ?? "Item personalizado";
           let itemIdFinal: number | null = null;
@@ -167,7 +165,7 @@ export class CreateOrderService {
             itemIdFinal = catalogItem.id;
           }
 
-          return {
+          allDetailsToInsert.push({
             order_id: orden.id,
             equipo_id: null,
             item_id: itemIdFinal,
@@ -175,10 +173,12 @@ export class CreateOrderService {
             precio_unit_snap: item.precio_unitario.toString(),
             cantidad: item.cantidad,
             subtotal: (item.precio_unitario * item.cantidad).toString(),
-          };
-        });
+          });
+        }
+      }
 
-        await tx.insert(orderDetailTable).values(looseDetailsToInsert);
+      if (allDetailsToInsert.length > 0) {
+        await tx.insert(orderDetailTable).values(allDetailsToInsert);
       }
       return orden;
     });
