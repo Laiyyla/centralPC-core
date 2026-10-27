@@ -9,9 +9,10 @@ export class RegisterService {
 
   async execute(input: RegisterInput) {
     const existingUser = await this.db
-      .select()
+      .select({ id: usersTable.id })
       .from(usersTable)
-      .where(eq(usersTable.user_name, input.user_name));
+      .where(eq(usersTable.user_name, input.user_name))
+      .limit(1);
 
     if (existingUser.length > 0) {
       throw new ConflictError("El nombre de Usuario ya esta en uso");

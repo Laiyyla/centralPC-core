@@ -11,7 +11,7 @@ export const authRouter = router({
   register: publicProcedure
     .input(registerSchema)
     .mutation(async ({ ctx, input }) => {
-      return await ctx.services.auth.login.execute(input);
+      return await ctx.services.auth.register.execute(input);
     }),
   login: publicProcedure.input(loginSchema).mutation(async ({ ctx, input }) => {
     return await ctx.services.auth.login.execute(input);
@@ -41,7 +41,7 @@ export const authRouter = router({
         rol: usersTable.rol,
       })
       .from(usersTable)
-      .where(eq(usersTable.isActive, true));
+      .where(eq(usersTable.isActive, true))
+      .limit(100);
   }),
 });
-
