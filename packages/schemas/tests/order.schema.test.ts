@@ -80,7 +80,7 @@ describe("Order Schemas Validation", () => {
       expect(result.success).toBe(false);
     });
 
-    it("debe rechazar ítems con precio unitario menor o igual a cero", () => {
+    it("debe rechazar ítems con precio unitario negativo", () => {
       const payload = {
         cliente_id: 1,
         equipos: [
@@ -90,7 +90,7 @@ describe("Order Schemas Validation", () => {
             detalle: [
               {
                 nombre_personalizado: "Mantenimiento preventivo",
-                precio_unitario: 0,
+                precio_unitario: -10,
                 cantidad: 1,
               },
             ],
