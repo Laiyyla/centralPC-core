@@ -67,4 +67,4 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 \
 EXPOSE 3000
 
 ENTRYPOINT ["/usr/local/bin/api-entrypoint.sh"]
-CMD ["node", "--import", "/app/apps/api/node_modules/tsx/dist/loader.mjs", "apps/api/src/server.ts"]
+CMD ["node", "--import", "tsx", "apps/api/src/server.ts"]

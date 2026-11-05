@@ -22,6 +22,7 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "tsx": "^4.23.15",
     "turbo": "^2.10.9",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
