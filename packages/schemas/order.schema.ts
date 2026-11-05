@@ -5,6 +5,7 @@ export const tipoEquipoEnum = z.enum([
   "LAPTOP",
   "IMPRESORA",
   "CELULAR",
+  "TABLET",
   "OTROS",
 ]);
 
@@ -21,7 +22,7 @@ export const estadoOrderEnum = z.enum([
 export const detalleItemSchema = z.object({
   item_id: z.number().optional(),
   nombre_personalizado: z.string().optional(),
-  precio_unitario: z.number().positive(),
+  precio_unitario: z.number().nonnegative(),
   cantidad: z.number().min(1),
 });
 
@@ -115,4 +116,3 @@ export type anularOrdenInput = z.infer<typeof anularOrderSchema>;
 export type EquipoBase = z.infer<typeof equipoBaseSchema>;
 export type TipoEquipo = z.infer<typeof tipoEquipoEnum>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
-

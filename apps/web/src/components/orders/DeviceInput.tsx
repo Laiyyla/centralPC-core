@@ -28,6 +28,7 @@ import {
 import { Alert, AlertDescription } from "../ui/alert";
 
 type DeviceInputProps = {
+  equipos?: EquipoBase[];
   onEquiposChange: (equipos: EquipoBase[]) => void;
 };
 
@@ -42,8 +43,10 @@ const tipoEquipoConfig: Record<
   OTROS: { label: "Otros", icon: <HelpCircle className="size-4" /> },
 };
 
-export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
-  const [equipos, setEquipos] = useState<EquipoBase[]>([]);
+export function DeviceInput({
+  equipos = [],
+  onEquiposChange,
+}: DeviceInputProps) {
   const [selectorKey, setSelectorKey] = useState(0);
   const [nuevoEquipo, setNuevoEquipo] = useState<{
     tipo_equipo: TipoEquipo;
@@ -66,7 +69,6 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
       return;
     }
     const equipoAdded = [...equipos, nuevoEquipo];
-    setEquipos(equipoAdded);
     onEquiposChange(equipoAdded);
 
     setNuevoEquipo({
@@ -79,7 +81,6 @@ export function DeviceInput({ onEquiposChange }: DeviceInputProps) {
 
   function quitarEquipo(index: number) {
     const equipoFiltrados = equipos.filter((_, i) => i !== index);
-    setEquipos(equipoFiltrados);
     onEquiposChange(equipoFiltrados);
   }
 

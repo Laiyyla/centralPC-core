@@ -23,21 +23,23 @@ FROM base AS builder
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
+ENV PNPM_STORE_DIR="/pnpm/store"
+
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY --from=pruner /app/out/full/ .
 COPY turbo.json turbo.json
 RUN pnpm turbo build --filter=@central-pc/api...
 
-# Remove build artifacts not needed at runtime
-RUN rm -rf .turbo apps/*/dist packages/*/dist
+RUN rm -rf .turbo
 
 # ==========================================
-# Runner: Production image
+# Runner: Production image (Non-root)
 # ==========================================
 FROM base AS runner
 RUN apk add --no-cache libc6-compat
@@ -55,12 +57,14 @@ COPY --from=builder /app/apps/api ./apps/api
 COPY --from=builder /app/packages ./packages
 
 COPY docker/api-entrypoint.sh /usr/local/bin/api-entrypoint.sh
-RUN chmod +x /usr/local/bin/api-entrypoint.sh
+RUN chmod +x /usr/local/bin/api-entrypoint.sh && chown -R node:node /app
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+USER node
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 EXPOSE 3000
 
 ENTRYPOINT ["/usr/local/bin/api-entrypoint.sh"]
-CMD ["pnpm", "--filter", "@central-pc/api", "start"]
+CMD ["node", "--import", "tsx", "apps/api/src/server.ts"]

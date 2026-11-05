@@ -16,6 +16,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { SearchIcon, EyeIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+
 export const Route = createFileRoute("/_authed/clients/")({
   component: ClientsPage,
   staticData: {
@@ -45,20 +48,6 @@ function ClientsPage() {
   const isLoading = isSearching ? searchQuery.isLoading : listQuery.isLoading;
   const isError = isSearching ? searchQuery.isError : listQuery.isError;
 
-  if (isLoading && !clientes)
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Cargando clientes...
-      </div>
-    );
-
-  if (isError)
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Error al cargar los clientes.</AlertDescription>
-      </Alert>
-    );
-
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -72,6 +61,13 @@ function ClientsPage() {
           </p>
         </div>
       </div>
+
+      {/* Error state */}
+      {isError && (
+        <Alert variant="destructive">
+          <AlertDescription>Error al cargar los clientes.</AlertDescription>
+        </Alert>
+      )}
 
       {/* Búsqueda + contador */}
       <div className="flex items-center justify-between gap-4">
@@ -94,9 +90,15 @@ function ClientsPage() {
         </span>
       </div>
 
-      {/* Tabla */}
-      <div className="rounded-lg border bg-surface overflow-hidden">
-        <Table>
+      {/* Tabla con Skeleton Loader integrado */}
+      {isLoading && !clientes ? (
+        <TableSkeleton
+          rows={8}
+          headers={["Nombre", "Teléfono", "DNI", "RUC", "Acciones"]}
+        />
+      ) : (
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
@@ -108,14 +110,24 @@ function ClientsPage() {
           </TableHeader>
           <TableBody>
             {!clientes || clientes.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-muted-foreground py-12"
-                >
-                  {isSearching
-                    ? `No se encontraron clientes para "${debouncedSearch.trim()}".`
-                    : "No hay clientes registrados en esta página."}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="p-0">
+                  <EmptyState
+                    variant="search"
+                    title={isSearching ? "Cliente no encontrado" : "Sin clientes registrados"}
+                    description={
+                      isSearching
+                        ? `No encontramos coincidencias para "${debouncedSearch.trim()}". Verifica el DNI, RUC o nombre.`
+                        : "Aún no hay clientes registrados en esta sección del sistema."
+                    }
+                    action={
+                      isSearching ? (
+                        <Button variant="outline" size="sm" onClick={() => setSearch("")}>
+                          Borrar búsqueda
+                        </Button>
+                      ) : undefined
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -194,6 +206,7 @@ function ClientsPage() {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

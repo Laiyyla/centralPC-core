@@ -12,21 +12,23 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Search, Plus, X, User, Phone } from "lucide-react";
 
-type ClientSelectorProps = {
-  onClientSelect: (id: number | null) => void;
-};
-
-type ClienteResumen = {
+export type ClienteResumen = {
   id: number;
   nombre: string;
   telefono: string;
 };
 
-export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
+type ClientSelectorProps = {
+  selectedClient?: ClienteResumen | null;
+  onClientSelect: (cliente: ClienteResumen | null) => void;
+};
+
+export function ClientSelector({
+  selectedClient = null,
+  onClientSelect,
+}: ClientSelectorProps) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
-  const [clienteSeleccionado, setClienteSeleccionado] =
-    useState<ClienteResumen | null>(null);
   const [modoCrear, setModoCrear] = useState(false);
 
   const createClientForm = useForm<CreateClientInput>({
@@ -40,12 +42,11 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
 
   const crearCliente = trpc.clients.create.useMutation({
     onSuccess: (data) => {
-      setClienteSeleccionado({
+      onClientSelect({
         id: data.id,
         nombre: data.nombre,
         telefono: data.telefono,
       });
-      onClientSelect(data.id);
       setModoCrear(false);
       createClientForm.reset();
     },
@@ -57,8 +58,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   });
 
   function seleccionarCliente(cliente: ClienteResumen) {
-    setClienteSeleccionado(cliente);
-    onClientSelect(cliente.id);
+    onClientSelect(cliente);
     setQuery("");
   }
 
@@ -67,7 +67,7 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
   }
 
   // Estado: Cliente seleccionado
-  if (clienteSeleccionado !== null) {
+  if (selectedClient !== null) {
     return (
       <div className="rounded-lg border bg-surface p-4">
         <div className="flex items-center justify-between">
@@ -77,11 +77,11 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
             </div>
             <div>
               <p className="font-medium text-foreground">
-                {clienteSeleccionado.nombre}
+                {selectedClient.nombre}
               </p>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
                 <Phone className="size-3" />
-                {clienteSeleccionado.telefono}
+                {selectedClient.telefono}
               </p>
             </div>
           </div>
@@ -89,7 +89,6 @@ export function ClientSelector({ onClientSelect }: ClientSelectorProps) {
             variant="ghost"
             size="sm"
             onClick={() => {
-              setClienteSeleccionado(null);
               onClientSelect(null);
             }}
           >

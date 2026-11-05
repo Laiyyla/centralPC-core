@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchIcon, PlusCircle } from "lucide-react";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const tipoConfig: Record<string, { label: string; className: string }> = {
   servicio: {
@@ -71,20 +73,6 @@ function CatalogPage() {
     });
   }, [data, search, tipoFiltro]);
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Cargando catálogo...
-      </div>
-    );
-
-  if (isError)
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Error al obtener el catálogo.</AlertDescription>
-      </Alert>
-    );
-
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -105,6 +93,13 @@ function CatalogPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Error state */}
+      {isError && (
+        <Alert variant="destructive">
+          <AlertDescription>Error al obtener el catálogo.</AlertDescription>
+        </Alert>
+      )}
 
       {/* Búsqueda + filtro */}
       <div className="flex items-center gap-3">
@@ -133,9 +128,15 @@ function CatalogPage() {
         </span>
       </div>
 
-      {/* Tabla */}
-      <div className="rounded-lg border bg-surface overflow-hidden">
-        <Table>
+      {/* Tabla con Skeleton Loader integrado */}
+      {isLoading ? (
+        <TableSkeleton
+          rows={8}
+          headers={["Nombre", "Tipo", "Precio Ref.", "Estado"]}
+        />
+      ) : (
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
@@ -146,12 +147,20 @@ function CatalogPage() {
           </TableHeader>
           <TableBody>
             {filtrados.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center text-muted-foreground py-12"
-                >
-                  No se encontraron ítems.
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={4} className="p-0">
+                  <EmptyState
+                    variant="search"
+                    title="Catálogo sin resultados"
+                    description={`No se hallaron repuestos ni servicios que coincidan con "${search}".`}
+                    action={
+                      search ? (
+                        <Button variant="outline" size="sm" onClick={() => setSearch("")}>
+                          Restablecer catálogo
+                        </Button>
+                      ) : undefined
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -193,6 +202,7 @@ function CatalogPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
