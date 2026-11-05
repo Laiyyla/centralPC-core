@@ -22,6 +22,7 @@ services:
       retries: 3
     networks:
       - centralpc-net
+      - coolify
 
   web:
     build:
@@ -47,3 +48,5 @@ services:
 networks:
   centralpc-net:
     driver: bridge
+  coolify:
+    external: true
