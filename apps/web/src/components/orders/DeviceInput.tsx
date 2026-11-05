@@ -22,6 +22,7 @@ import {
   Laptop,
   Printer,
   Smartphone,
+  Tablet,
   HelpCircle,
   AlertCircle,
 } from "lucide-react";
@@ -40,6 +41,7 @@ const tipoEquipoConfig: Record<
   LAPTOP: { label: "Laptop", icon: <Laptop className="size-4" /> },
   IMPRESORA: { label: "Impresora", icon: <Printer className="size-4" /> },
   CELULAR: { label: "Celular", icon: <Smartphone className="size-4" /> },
+  TABLET: { label: "Tablet", icon: <Tablet className="size-4" /> },
   OTROS: { label: "Otros", icon: <HelpCircle className="size-4" /> },
 };
 
