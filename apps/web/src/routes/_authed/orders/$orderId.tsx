@@ -50,7 +50,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EditOrderModal } from "@/components/orders/EditOrderModal";
-import { getStatusBadge } from "./index";
+import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authed/orders/$orderId")({
   component: RouteComponent,
@@ -144,8 +145,24 @@ function RouteComponent() {
     );
   if (isLoading)
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Cargando orden...
+      <div className="flex flex-col gap-6 animate-pulse">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-9 rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-28" />
+            <Skeleton className="h-9 w-28" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl md:col-span-2" />
+        </div>
       </div>
     );
   if (isError || !data)
@@ -297,7 +314,7 @@ function RouteComponent() {
                     (N° {data.correlativo})
                   </span>
                 )}
-                {getStatusBadge(data.estado)}
+                <OrderStatusBadge estado={data.estado} />
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Registrada el{" "}
@@ -484,7 +501,7 @@ function RouteComponent() {
 
             {/* Observaciones generales */}
             {data.observaciones && (
-              <Card className="bg-amber-500/5 border-amber-200">
+              <Card className="bg-amber-500/5 border-amber-500/20 dark:border-amber-500/30">
                 <CardHeader className="py-3">
                   <CardTitle className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-2">
                     <FileTextIcon className="size-4" />

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: () => {
@@ -64,13 +65,16 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md">
         <Card className="shadow-md">
           <CardContent className="pt-8 pb-6 px-8 flex flex-col gap-6">
             {/* Logo + título */}
             <div className="flex flex-col items-center gap-3">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-primary">
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30">
                 <CpuIcon className="size-7 text-white" />
               </div>
               <div className="text-center">

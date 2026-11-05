@@ -1,7 +1,10 @@
 import type { EquipoBase } from "@central-pc/schemas";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ClientSelector } from "@/components/orders/ClientSelector";
+import {
+  ClientSelector,
+  type ClienteResumen,
+} from "@/components/orders/ClientSelector";
 import { DeviceInput } from "@/components/orders/DeviceInput";
 import { trpc } from "@/trpc/client";
 import { openOrderPdf } from "@/lib/api";
@@ -47,7 +50,7 @@ const steps = [
 
 function RouteComponent() {
   const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [clienteId, setClienteId] = useState<number | null>(null);
+  const [cliente, setCliente] = useState<ClienteResumen | null>(null);
   const [equipos, setEquipos] = useState<EquipoBase[]>([]);
   const [observaciones, setObservaciones] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -84,7 +87,7 @@ function RouteComponent() {
   function validateStep(step: Step): boolean {
     setValidationError(null);
 
-    if (step === 1 && !clienteId) {
+    if (step === 1 && !cliente) {
       setValidationError("Debe seleccionar un cliente antes de continuar.");
       return false;
     }
@@ -110,12 +113,12 @@ function RouteComponent() {
 
   function handleSubmit() {
     if (!validateStep(1) || !validateStep(2)) {
-      setCurrentStep(!clienteId ? 1 : 2);
+      setCurrentStep(!cliente ? 1 : 2);
       return;
     }
 
     orderMutation.mutate({
-      cliente_id: clienteId!,
+      cliente_id: cliente!.id,
       equipos: equipos,
       observaciones: observaciones,
     });
@@ -232,7 +235,10 @@ function RouteComponent() {
           </CardHeader>
           <Separator />
           <CardContent className="pt-6">
-            <ClientSelector onClientSelect={setClienteId} />
+            <ClientSelector
+              selectedClient={cliente}
+              onClientSelect={setCliente}
+            />
           </CardContent>
         </Card>
       )}
@@ -253,7 +259,10 @@ function RouteComponent() {
           </CardHeader>
           <Separator />
           <CardContent className="pt-6">
-            <DeviceInput onEquiposChange={setEquipos} />
+            <DeviceInput
+              equipos={equipos}
+              onEquiposChange={setEquipos}
+            />
           </CardContent>
         </Card>
       )}

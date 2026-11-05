@@ -3,10 +3,18 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/trpc/client";
 import { openOrderPdf } from "@/lib/api";
 import { useAuthUser } from "@/context/auth-context";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import {
+  OrderStatusBadge,
+  getStatusBadge,
+} from "@/components/orders/OrderStatusBadge";
+export { getStatusBadge };
 import {
   Select,
   SelectContent,
@@ -48,59 +56,11 @@ export const Route = createFileRoute("/_authed/orders/")({
   },
 });
 
-export function getStatusBadge(estado: string) {
-  switch (estado) {
-    case "RECEPCIONADA":
-      return (
-        <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-200">
-          RECEPCIONADA
-        </Badge>
-      );
-    case "EN_DIAGNOSTICO":
-      return (
-        <Badge className="bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-200">
-          EN DIAGNÓSTICO
-        </Badge>
-      );
-    case "ESPERANDO_APROBACION":
-      return (
-        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-200">
-          ESPERANDO APROBACIÓN
-        </Badge>
-      );
-    case "EN_REPARACION":
-      return (
-        <Badge className="bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-200">
-          EN REPARACIÓN
-        </Badge>
-      );
-    case "COMPLETADA":
-      return (
-        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200">
-          COMPLETADA
-        </Badge>
-      );
-    case "ENTREGADA":
-      return (
-        <Badge className="bg-green-600/15 text-green-700 dark:text-green-400 border-green-200">
-          ENTREGADA
-        </Badge>
-      );
-    case "ANULADA":
-      return (
-        <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border-red-200">
-          ANULADA
-        </Badge>
-      );
-    default:
-      return <Badge variant="outline">{estado}</Badge>;
-  }
-}
-
 function RouteComponent() {
   const { user } = useAuthUser();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 250);
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [techFilter, setTechFilter] = useState<string>("todos");
   const [page, setPage] = useState(0);
@@ -123,7 +83,7 @@ function RouteComponent() {
 
   const filtered = useMemo(() => {
     if (!data) return [];
-    const q = search
+    const q = debouncedSearch
       .toLowerCase()
       .trim()
       .normalize("NFD")
@@ -143,7 +103,7 @@ function RouteComponent() {
         normalize(o.cliente?.nombre ?? "").includes(q) ||
         normalize(o.encargado?.nombre ?? "").includes(q),
     );
-  }, [data, search]);
+  }, [data, debouncedSearch]);
 
   async function handlePdf(ordenId: number) {
     try {
@@ -153,22 +113,6 @@ function RouteComponent() {
         console.error(err);
       }
     }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Cargando órdenes...
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{error?.message}</AlertDescription>
-      </Alert>
-    );
   }
 
   return (
@@ -256,175 +200,219 @@ function RouteComponent() {
         </Select>
       </div>
 
-      {/* Tabla */}
-      <div className="rounded-lg border bg-surface overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Orden / N°</TableHead>
-              <TableHead>Estado Operativo</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Técnico Encargado</TableHead>
-              <TableHead>Fecha Ingreso</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-center">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
+      {/* Error State */}
+      {isError && (
+        <Alert variant="destructive">
+          <AlertDescription>{error?.message}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Tabla con Skeleton Loader integrado */}
+      {isLoading ? (
+        <TableSkeleton
+          rows={pageSize > 10 ? 8 : pageSize}
+          headers={[
+            "Orden / N°",
+            "Estado Operativo",
+            "Cliente",
+            "Técnico Encargado",
+            "Fecha Ingreso",
+            "Total",
+            "Acciones",
+          ]}
+        />
+      ) : (
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center text-muted-foreground py-12"
-                >
-                  No se encontraron órdenes con los criterios especificados.
-                </TableCell>
+                <TableHead>Orden / N°</TableHead>
+                <TableHead>Estado Operativo</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Técnico Encargado</TableHead>
+                <TableHead>Fecha Ingreso</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
-            ) : (
-              filtered.map((orden) => (
-                <TableRow key={orden.id}>
-                  {/* Orden / ID */}
-                  <TableCell>
-                    <Link
-                      to="/orders/$orderId"
-                      params={{ orderId: String(orden.id) }}
-                      className="font-semibold text-primary hover:underline"
-                    >
-                      #{String(orden.id).padStart(5, "0")}
-                    </Link>
-                    {orden.correlativo && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        N° {orden.correlativo}
-                      </p>
-                    )}
-                  </TableCell>
-
-                  {/* Estado */}
-                  <TableCell>{getStatusBadge(orden.estado)}</TableCell>
-
-                  {/* Cliente */}
-                  <TableCell className="font-medium">
-                    {orden.cliente?.nombre ?? "—"}
-                  </TableCell>
-
-                  {/* Técnico Encargado */}
-                  <TableCell>
-                    {orden.encargado ? (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                        <UserCheck className="size-3.5 text-emerald-600" />
-                        <span>{orden.encargado.nombre}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded w-fit">
-                        <UserX className="size-3" />
-                        <span>Sin Asignar</span>
-                      </div>
-                    )}
-                  </TableCell>
-
-                  {/* Fecha */}
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <CalendarIcon className="size-3.5" />
-                      {new Date(orden.fecha_emision).toLocaleDateString(
-                        "es-PE",
-                        {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )}
-                    </div>
-                  </TableCell>
-
-                  {/* Total */}
-                  <TableCell className="text-right font-semibold">
-                    S/ {Number(orden.total).toFixed(2)}
-                  </TableCell>
-
-                  {/* Acciones */}
-                  <TableCell className="text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            navigate({
-                              to: "/orders/$orderId",
-                              params: { orderId: String(orden.id) },
-                            })
-                          }
-                        >
-                          <Eye className="size-4 mr-2" />
-                          Ver Detalle / Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handlePdf(orden.id)}>
-                          <FileText className="size-4 mr-2" />
-                          Imprimir PDF
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={7} className="p-0">
+                    <EmptyState
+                      variant={search ? "search" : "orders"}
+                      title={
+                        search
+                          ? "Sin coincidencias en la búsqueda"
+                          : "Bandeja de órdenes limpia"
+                      }
+                      description={
+                        search
+                          ? `No encontramos órdenes para "${search}". ¿Seguro que el correlativo o cliente está bien escrito?`
+                          : "No hay órdenes pendientes en este filtro. Todo el taller está al día (o alguien olvidó registrar la recepción)."
+                      }
+                      action={
+                        search ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSearch("")}
+                          >
+                            Limpiar búsqueda
+                          </Button>
+                        ) : undefined
+                      }
+                    />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                filtered.map((orden) => (
+                  <TableRow key={orden.id}>
+                    {/* Orden / ID */}
+                    <TableCell>
+                      <Link
+                        to="/orders/$orderId"
+                        params={{ orderId: String(orden.id) }}
+                        className="font-semibold text-primary hover:underline"
+                      >
+                        #{String(orden.id).padStart(5, "0")}
+                      </Link>
+                      {orden.correlativo && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          N° {orden.correlativo}
+                        </p>
+                      )}
+                    </TableCell>
 
-        {/* Footer de paginación */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t text-sm text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span>
-              Página {page + 1} — {filtered.length} órdenes en vista
-            </span>
-            <div className="flex items-center gap-1.5 text-xs">
-              <span>Por pág:</span>
-              <select
-                aria-label="Órdenes por página"
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(0);
-                }}
-                className="rounded border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    {/* Estado */}
+                    <TableCell>
+                      <OrderStatusBadge estado={orden.estado} />
+                    </TableCell>
+
+                    {/* Cliente */}
+                    <TableCell className="font-medium">
+                      {orden.cliente?.nombre ?? "—"}
+                    </TableCell>
+
+                    {/* Técnico Encargado */}
+                    <TableCell>
+                      {orden.encargado ? (
+                        <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                          <UserCheck className="size-3.5 text-emerald-600" />
+                          <span>{orden.encargado.nombre}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded w-fit">
+                          <UserX className="size-3" />
+                          <span>Sin Asignar</span>
+                        </div>
+                      )}
+                    </TableCell>
+
+                    {/* Fecha */}
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <CalendarIcon className="size-3.5" />
+                        {new Date(orden.fecha_emision).toLocaleDateString(
+                          "es-PE",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
+                      </div>
+                    </TableCell>
+
+                    {/* Total */}
+                    <TableCell className="text-right font-semibold">
+                      S/ {Number(orden.total).toFixed(2)}
+                    </TableCell>
+
+                    {/* Acciones */}
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              navigate({
+                                to: "/orders/$orderId",
+                                params: { orderId: String(orden.id) },
+                              })
+                            }
+                          >
+                            <Eye className="size-4 mr-2" />
+                            Ver Detalle / Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handlePdf(orden.id)}>
+                            <FileText className="size-4 mr-2" />
+                            Imprimir PDF
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+
+          {/* Footer de paginación */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t text-sm text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span>
+                Página {page + 1} — {filtered.length} órdenes en vista
+              </span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span>Por pág:</span>
+                <select
+                  aria-label="Órdenes por página"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(0);
+                  }}
+                  className="rounded border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0 || isLoading}
               >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
+                <ChevronLeft className="size-4 mr-1" />
+                Anterior
+              </Button>
+              <span className="text-xs font-semibold px-2">
+                Pág. {page + 1}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!data || data.length < pageSize || isLoading}
+              >
+                Siguiente
+                <ChevronRight className="size-4 ml-1" />
+              </Button>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0 || isLoading}
-            >
-              <ChevronLeft className="size-4 mr-1" />
-              Anterior
-            </Button>
-            <span className="text-xs font-semibold px-2">
-              Pág. {page + 1}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={!data || data.length < pageSize || isLoading}
-            >
-              Siguiente
-              <ChevronRight className="size-4 ml-1" />
-            </Button>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

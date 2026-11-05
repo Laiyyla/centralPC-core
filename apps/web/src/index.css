@@ -65,28 +65,28 @@
 }
 
 :root {
-    /* Fondo y superficies */
-    --background: #f8f9fc;
-    --foreground: #1a1a2e;
+    /* Fondo y superficies (Soft Lavender Tech) */
+    --background: #fbfaff;
+    --foreground: #140f26;
     --surface: #ffffff;
     --card: #ffffff;
-    --card-foreground: #1a1a2e;
+    --card-foreground: #140f26;
     --popover: #ffffff;
-    --popover-foreground: #1a1a2e;
+    --popover-foreground: #140f26;
 
-    /* Marca */
-    --primary: #3b62ff;
+    /* Marca Cyber-Sleek */
+    --primary: #7c3aed;
     --primary-foreground: #ffffff;
-    --accent: #7c3aed;
+    --accent: #ec4899;
     --accent-foreground: #ffffff;
 
-    /* Neutros */
-    --secondary: #f1f3f9;
-    --secondary-foreground: #1a1a2e;
-    --muted: #f1f3f9;
-    --muted-foreground: #6b7280;
+    /* Neutros lavanda */
+    --secondary: #f3f0fa;
+    --secondary-foreground: #231842;
+    --muted: #f3f0fa;
+    --muted-foreground: #6d6580;
 
-    /* Estados */
+    /* Estados semánticos */
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
     --success: #10b981;
@@ -95,74 +95,81 @@
     --warning-foreground: #ffffff;
 
     /* Bordes y foco */
-    --border: #e5e7eb;
-    --input: #e5e7eb;
-    --ring: #3b62ff;
+    --border: #e8e3f2;
+    --input: #e8e3f2;
+    --ring: #7c3aed;
 
-    /* Charts (azules/violetas de marca) */
-    --chart-1: #3b62ff;
-    --chart-2: #7c3aed;
-    --chart-3: #1a1a2e;
-    --chart-4: #6b7280;
+    /* Charts */
+    --chart-1: #7c3aed;
+    --chart-2: #ec4899;
+    --chart-3: #140f26;
+    --chart-4: #6d6580;
     --chart-5: #10b981;
 
     --radius: 0.625rem;
 
     /* Sidebar */
-    --sidebar: #ffffff;
-    --sidebar-foreground: #1a1a2e;
-    --sidebar-primary: #3b62ff;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f1f3f9;
-    --sidebar-accent-foreground: #1a1a2e;
-    --sidebar-border: #e5e7eb;
-    --sidebar-ring: #3b62ff;
+    --sidebar: #0e0c1a;
+    --sidebar-foreground: #f5f3ff;
+    --sidebar-primary: #8b5cf6;
+    --sidebar-primary-foreground: #0e0c1a;
+    --sidebar-accent: #211c38;
+    --sidebar-accent-foreground: #f5f3ff;
+    --sidebar-border: #241e3d;
+    --sidebar-ring: #8b5cf6;
 }
 
 .dark {
-    --background: #0f1117;
-    --foreground: #f8f9fc;
-    --surface: #1a1d27;
-    --card: #1a1d27;
-    --card-foreground: #f8f9fc;
-    --popover: #1a1d27;
-    --popover-foreground: #f8f9fc;
+    /* Fondo y superficies (Midnight Cyber-Violet) */
+    --background: #0c0a14;
+    --foreground: #f5f3ff;
+    --surface: #141124;
+    --card: #141124;
+    --card-foreground: #f5f3ff;
+    --popover: #141124;
+    --popover-foreground: #f5f3ff;
 
-    --primary: #5b7fff;
-    --primary-foreground: #0f1117;
-    --accent: #9d6fff;
-    --accent-foreground: #0f1117;
+    /* Marca Cyber-Sleek */
+    --primary: #8b5cf6;
+    --primary-foreground: #0c0a14;
+    --accent: #f43f5e;
+    --accent-foreground: #0c0a14;
 
-    --secondary: #262936;
-    --secondary-foreground: #f8f9fc;
-    --muted: #262936;
-    --muted-foreground: #9ca3af;
+    /* Neutros nocturnos */
+    --secondary: #211c38;
+    --secondary-foreground: #f5f3ff;
+    --muted: #211c38;
+    --muted-foreground: #9e97b8;
 
+    /* Estados semánticos */
     --destructive: #f87171;
-    --destructive-foreground: #0f1117;
+    --destructive-foreground: #0c0a14;
     --success: #34d399;
-    --success-foreground: #0f1117;
+    --success-foreground: #0c0a14;
     --warning: #fbbf24;
-    --warning-foreground: #0f1117;
+    --warning-foreground: #0c0a14;
 
-    --border: #2e3245;
-    --input: #2e3245;
-    --ring: #5b7fff;
+    /* Bordes y foco */
+    --border: #2a2442;
+    --input: #2a2442;
+    --ring: #8b5cf6;
 
-    --chart-1: #5b7fff;
-    --chart-2: #9d6fff;
-    --chart-3: #f8f9fc;
-    --chart-4: #9ca3af;
+    /* Charts */
+    --chart-1: #8b5cf6;
+    --chart-2: #f43f5e;
+    --chart-3: #f5f3ff;
+    --chart-4: #9e97b8;
     --chart-5: #34d399;
 
-    --sidebar: #1a1d27;
-    --sidebar-foreground: #f8f9fc;
-    --sidebar-primary: #5b7fff;
-    --sidebar-primary-foreground: #0f1117;
-    --sidebar-accent: #262936;
-    --sidebar-accent-foreground: #f8f9fc;
-    --sidebar-border: #2e3245;
-    --sidebar-ring: #5b7fff;
+    /* Sidebar */
+    --sidebar: #0e0c1a;
+    --sidebar-foreground: #f5f3ff;
+    --sidebar-primary: #8b5cf6;
+    --sidebar-primary-foreground: #0c0a14;
+    --sidebar-accent: #211c38;
+    --sidebar-accent-foreground: #f5f3ff;
+    --sidebar-border: #241e3d;
+    --sidebar-ring: #8b5cf6;
 }
 
 @layer base {
@@ -172,6 +179,7 @@
     body {
         @apply bg-background text-foreground;
         font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        transition: background-color 0.2s ease, color 0.2s ease;
     }
     html {
         @apply font-sans;
@@ -181,8 +189,8 @@
 /* Animación suave para sidebar */
 
 [data-sidebar="sidebar"] {
-    --sidebar: #1a1a2e;
-    --sidebar-foreground: #ffffff;
-    --sidebar-accent: rgba(255, 255, 255, 0.1);
-    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --sidebar: #0e0c1a;
+    --sidebar-foreground: #f5f3ff;
+    --sidebar-accent: rgba(139, 92, 246, 0.12);
+    --sidebar-border: rgba(139, 92, 246, 0.15);
 }
