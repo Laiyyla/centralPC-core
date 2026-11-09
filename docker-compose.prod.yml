@@ -10,6 +10,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - COOKIE_SECRET=${COOKIE_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
+      - RUC=${RUC}
       - NODE_ENV=production
       - SUCURSAL_ID=${SUCURSAL_ID:-1}
     expose:

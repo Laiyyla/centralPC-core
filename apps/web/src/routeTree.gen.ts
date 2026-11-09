@@ -20,6 +20,7 @@ import { Route as AuthedClientsClientIdRouteImport } from './routes/_authed/clie
 import { Route as AuthedOrdersIndexRouteImport } from './routes/_authed/orders/index'
 import { Route as AuthedOrdersOrderIdRouteImport } from './routes/_authed/orders/$orderId'
 import { Route as AuthedOrdersNewRouteImport } from './routes/_authed/orders/new'
+import { Route as AuthedUsersIndexRouteImport } from './routes/_authed/users/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -75,6 +76,11 @@ const AuthedOrdersNewRoute = AuthedOrdersNewRouteImport.update({
   path: '/orders/new',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedUsersIndexRoute = AuthedUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/catalog/': typeof AuthedCatalogIndexRoute
   '/clients/': typeof AuthedClientsIndexRoute
   '/orders/': typeof AuthedOrdersIndexRoute
+  '/users/': typeof AuthedUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/catalog': typeof AuthedCatalogIndexRoute
   '/clients': typeof AuthedClientsIndexRoute
   '/orders': typeof AuthedOrdersIndexRoute
+  '/users': typeof AuthedUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/_authed/catalog/': typeof AuthedCatalogIndexRoute
   '/_authed/clients/': typeof AuthedClientsIndexRoute
   '/_authed/orders/': typeof AuthedOrdersIndexRoute
+  '/_authed/users/': typeof AuthedUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/catalog/'
     | '/clients/'
     | '/orders/'
+    | '/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/clients'
     | '/orders'
+    | '/users'
   id:
     | '__root__'
     | '/'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/_authed/catalog/'
     | '/_authed/clients/'
     | '/_authed/orders/'
+    | '/_authed/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -239,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedOrdersNewRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/users/': {
+      id: '/_authed/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof AuthedUsersIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
@@ -251,6 +270,7 @@ interface AuthedRouteChildren {
   AuthedCatalogIndexRoute: typeof AuthedCatalogIndexRoute
   AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
   AuthedOrdersIndexRoute: typeof AuthedOrdersIndexRoute
+  AuthedUsersIndexRoute: typeof AuthedUsersIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -262,6 +282,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCatalogIndexRoute: AuthedCatalogIndexRoute,
   AuthedClientsIndexRoute: AuthedClientsIndexRoute,
   AuthedOrdersIndexRoute: AuthedOrdersIndexRoute,
+  AuthedUsersIndexRoute: AuthedUsersIndexRoute,
 }
 
 const AuthedRouteWithChildren =

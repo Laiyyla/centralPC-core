@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Document,
   Page,
@@ -119,7 +120,7 @@ export const OrderPdfTemplate: React.FC<OrderPdfProps> = ({ order }) => {
               {sucursal?.nombre || "CENTRAL PC"}
             </Text>
             <Text style={styles.textRow}>
-              RUC: {sucursal?.ruc_empresa || "N/A"}
+              RUC: {sucursal?.RUC || "N/A"}
             </Text>
           </View>
           <View>

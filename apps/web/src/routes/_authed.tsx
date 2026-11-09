@@ -22,6 +22,7 @@ import {
   PackageIcon,
   LogOutIcon,
   CpuIcon,
+  UsersIcon,
 } from "lucide-react";
 import { Toaster } from "sonner";
 import { trpc } from "@/trpc/client";
@@ -127,6 +128,18 @@ function AuthedLayout() {
                   <span>Catálogo</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {user?.rol === "admin" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={<Link to="/users" />}
+                    tooltip="Usuarios"
+                    className="text-sidebar-foreground/75 hover:text-sidebar-foreground"
+                  >
+                    <UsersIcon />
+                    <span>Usuarios</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
 

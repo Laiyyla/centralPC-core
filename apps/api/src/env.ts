@@ -13,6 +13,7 @@ const envSchema = z.object({
     ),
   SERVER_PORT: z.coerce.number().default(3000),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
+  RUC: z.string().length(11, "El RUC de la empresa es obligatorio y debe tener 11 dígitos"),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
