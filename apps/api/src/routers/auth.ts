@@ -2,13 +2,14 @@ import {
   router,
   publicProcedure,
   authedProcedure,
+  adminProcedure,
 } from "../procedures/index.js";
 import "@fastify/cookie";
 import { registerSchema, loginSchema } from "@central-pc/schemas";
 import { usersTable, eq } from "@central-pc/database";
 
 export const authRouter = router({
-  register: publicProcedure
+  register: adminProcedure
     .input(registerSchema)
     .mutation(async ({ ctx, input }) => {
       return await ctx.services.auth.register.execute(input);

@@ -15,26 +15,36 @@ async function seed() {
 
   // 1. Sucursal principal
   console.log("📍 Creando sucursal...");
+  const ruc = process.env.RUC;
+  if (!ruc || ruc.trim().length !== 11) {
+    throw new Error(
+      "❌ ERROR: La variable de entorno RUC es obligatoria y debe tener 11 dígitos.",
+    );
+  }
+
   const [sucursal] = await db
     .insert(branchTable)
-    //Local de testing, que será reemplazado por la unica sucursal que existe actualmente
     .values({
       nombre: "Central-PC Bocanegra",
       serie: "B001",
-      RUC: String(process.env.RUC),
+      RUC: ruc.trim(),
       isActive: true,
       ultimo_correlativo: 0,
     })
+    .onConflictDoNothing()
     .returning();
-  console.log("✅ Sucursal creada:", sucursal.id);
+  if (sucursal) {
+    console.log("✅ Sucursal creada:", sucursal.id);
+  } else {
+    console.log("ℹ️ Sucursal ya existente");
+  }
 
   // 2. Usuarios
-  console.log("👤 Creando usuarios...");
+  console.log("👤 Creando usuario admin...");
   const passwordHash = await bcrypt.hash("centralpc123", 10);
 
   const usuarios = await db
     .insert(usersTable)
-    //usuarios de Testing
     .values([
       {
         nombre: "Hugo Santos",
@@ -43,33 +53,17 @@ async function seed() {
         rol: "admin",
         isActive: true,
       },
-      {
-        nombre: "Josue",
-        user_name: "tecnico",
-        password_hash: passwordHash,
-        rol: "tecnico",
-        isActive: true,
-      },
-      {
-        nombre: "Juan Carlos",
-        user_name: "cajero",
-        password_hash: passwordHash,
-        rol: "cajero",
-        isActive: true,
-      },
-      {
-        nombre: "Alvaro Palomino",
-        user_name: "cajero1",
-        password_hash: passwordHash,
-        rol: "cajero",
-        isActive: true,
-      },
     ])
+    .onConflictDoNothing()
     .returning();
-  console.log(
-    "✅ Usuarios creados:",
-    usuarios.map((u) => u.user_name).join(", "),
-  );
+  if (usuarios.length > 0) {
+    console.log(
+      "✅ Usuario admin creado:",
+      usuarios.map((u) => u.user_name).join(", "),
+    );
+  } else {
+    console.log("ℹ️ Usuario admin ya existente");
+  }
 
   // 3. Clientes
   console.log("👥 Creando clientes...");

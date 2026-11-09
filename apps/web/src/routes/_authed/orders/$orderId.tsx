@@ -3,7 +3,7 @@ import { useState } from "react";
 import { PaymentForm } from "@/components/payments/PaymentForm";
 import { trpc } from "@/trpc/client";
 import { useAuthUser } from "@/context/auth-context";
-import { openOrderPdf } from "@/lib/api";
+import { openOrderPdf, fetchOrderPdfBlob } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -72,6 +73,10 @@ function RouteComponent() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedTechId, setSelectedTechId] = useState<string>("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const { data, isLoading, isError } = trpc.orders.getById.useQuery(
     { id: isValidId ? id : 0 },
@@ -114,13 +119,44 @@ function RouteComponent() {
     },
   });
 
-  async function handlePdf() {
+  async function handlePreviewPdf() {
+    setPreviewOpen(true);
+    if (!previewBlobUrl) {
+      setIsLoadingPdf(true);
+      try {
+        const blob = await fetchOrderPdfBlob(id);
+        const url = URL.createObjectURL(blob);
+        setPreviewBlobUrl(url);
+      } catch (err: any) {
+        toast.error("Error al cargar vista previa", {
+          description: err.message,
+        });
+        setPreviewOpen(false);
+      } finally {
+        setIsLoadingPdf(false);
+      }
+    }
+  }
+
+  function handleClosePreview(open: boolean) {
+    setPreviewOpen(open);
+    if (!open && previewBlobUrl) {
+      URL.revokeObjectURL(previewBlobUrl);
+      setPreviewBlobUrl(null);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    setIsDownloadingPdf(true);
     try {
       await openOrderPdf(id);
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.error(err);
-      }
+      toast.success("PDF descargado correctamente");
+    } catch (err: any) {
+      toast.error("Error al descargar PDF", {
+        description: err.message,
+      });
+    } finally {
+      setIsDownloadingPdf(false);
     }
   }
 
@@ -295,6 +331,43 @@ function RouteComponent() {
         </DialogContent>
       </Dialog>
 
+      {/* Modal vista previa PDF */}
+      <Dialog open={previewOpen} onOpenChange={handleClosePreview}>
+        <DialogContent className="sm:max-w-4xl max-w-[95vw] h-[85vh] flex flex-col p-4">
+          <DialogHeader className="pb-2 border-b">
+            <DialogTitle>
+              Vista Previa — Orden #
+              {data?.correlativo
+                ? String(data.correlativo).padStart(6, "0")
+                : id}
+            </DialogTitle>
+            <DialogDescription>
+              Revisa el documento e imprímelo directamente desde los controles del visor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 w-full h-full min-h-0 bg-muted/20 rounded-md overflow-hidden flex items-center justify-center">
+            {isLoadingPdf ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  Generando documento PDF...
+                </p>
+              </div>
+            ) : previewBlobUrl ? (
+              <iframe
+                src={previewBlobUrl}
+                title="Vista previa de orden de servicio"
+                className="w-full h-full rounded-md border-0 bg-white"
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No se pudo cargar el documento.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -334,13 +407,21 @@ function RouteComponent() {
                 Editar Orden
               </Button>
             )}
-            <Button variant="outline" onClick={handlePdf}>
+            <Button
+              variant="outline"
+              onClick={handlePreviewPdf}
+              disabled={isLoadingPdf}
+            >
               <PrinterIcon className="size-4 mr-1" />
-              Imprimir
+              {isLoadingPdf ? "Cargando..." : "Vista Previa / Imprimir"}
             </Button>
-            <Button variant="outline" onClick={handlePdf}>
+            <Button
+              variant="outline"
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+            >
               <DownloadIcon className="size-4 mr-1" />
-              PDF
+              {isDownloadingPdf ? "Descargando..." : "Descargar PDF"}
             </Button>
             {user?.rol === "admin" && !isAnulada && (
               <Button variant="destructive" onClick={() => setAnularOpen(true)}>

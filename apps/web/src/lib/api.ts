@@ -58,7 +58,7 @@ export function handleUnauthorized(): void {
   }
 }
 
-export async function openOrderPdf(orderId: number): Promise<void> {
+export async function fetchOrderPdfBlob(orderId: number): Promise<Blob> {
   const token = getToken();
   const apiUrl = getApiUrl();
   const headers: Record<string, string> = {};
@@ -77,15 +77,24 @@ export async function openOrderPdf(orderId: number): Promise<void> {
   }
 
   if (!response.ok) {
-    throw new Error(`Error al generar PDF (código ${response.status})`);
+    let errorMsg = `Error al generar PDF (código ${response.status})`;
+    try {
+      const errJson = await response.json();
+      if (errJson?.error) errorMsg = errJson.error;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
   }
 
-  const blob = await response.blob();
+  return await response.blob();
+}
+
+export async function openOrderPdf(orderId: number): Promise<void> {
+  const blob = await fetchOrderPdfBlob(orderId);
   const blobUrl = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = blobUrl;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
   a.download = `orden-${orderId}.pdf`;
   document.body.appendChild(a);
   a.click();
