@@ -52,6 +52,7 @@ function CatalogPage() {
 
   const { data, isLoading, isError } = trpc.catalog.list.useQuery({
     includeInactive: false,
+    limit: 500,
   });
 
   const normalize = (str: string) =>

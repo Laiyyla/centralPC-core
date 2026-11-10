@@ -32,7 +32,7 @@ export function CatalogItemSelector({ onDetalleChange }: ItemInputProp) {
   const debouncedSearch = useDebounce(search, 300);
 
   const { data: resultados, isLoading } = trpc.catalog.list.useQuery(
-    { includeInactive: false },
+    { includeInactive: false, limit: 500 },
     { enabled: debouncedSearch.trim().length >= 2 },
   );
 
