@@ -33,7 +33,7 @@ export const listItemsSchema = z
   .object({
     tipo: itemTypeEnum.optional(),
     includeInactive: z.boolean().default(false).optional(),
-    limit: z.number().min(1).max(100).default(50).optional(),
+    limit: z.number().min(1).max(500).default(50).optional(),
     offset: z.number().min(0).default(0).optional(),
   })
   .optional();
