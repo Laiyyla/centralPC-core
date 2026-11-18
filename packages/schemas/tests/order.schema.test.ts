@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   createOrderSchema,
   updateOrderSchema,
+  listOrdersSchema,
   estadoOrderEnum,
   tipoEquipoEnum,
 } from "../order.schema.js";
@@ -153,6 +154,21 @@ describe("Order Schemas Validation", () => {
 
       expect(estadoOrderEnum.safeParse("EN_ESPERA").success).toBe(false);
       expect(estadoOrderEnum.safeParse("CANCELADA").success).toBe(false);
+    });
+  });
+
+  describe("listOrdersSchema", () => {
+    it("debe aceptar un término de búsqueda válido", () => {
+      const result = listOrdersSchema.safeParse({ search: "Nicolas Ramirez" });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data?.search).toBe("Nicolas Ramirez");
+      }
+    });
+
+    it("debe rechazar términos de búsqueda excesivamente largos", () => {
+      const result = listOrdersSchema.safeParse({ search: "a".repeat(101) });
+      expect(result.success).toBe(false);
     });
   });
 });

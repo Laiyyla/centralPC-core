@@ -129,7 +129,7 @@ function RouteComponent() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <Link
             to="/orders"
@@ -138,7 +138,7 @@ function RouteComponent() {
             <ArrowLeft className="size-4" />
             Volver a Órdenes
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             Nueva Orden de Servicio
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -146,7 +146,7 @@ function RouteComponent() {
             proceso técnico.
           </p>
         </div>
-        <Badge variant="outline" className="shrink-0">
+        <Badge variant="outline" className="shrink-0 self-start">
           Orden Temporal: #TMP-{new Date().getFullYear()}
         </Badge>
       </div>
@@ -163,7 +163,7 @@ function RouteComponent() {
               {/* Step circle */}
               <div className="flex flex-col items-center">
                 <div
-                  className={`size-12 rounded-full flex items-center justify-center border-2 transition-colors ${
+                  className={`size-10 sm:size-12 rounded-full flex items-center justify-center border-2 transition-colors ${
                     isActive
                       ? "bg-primary border-primary text-primary-foreground"
                       : isCompleted
@@ -201,7 +201,7 @@ function RouteComponent() {
               {/* Connector line */}
               {index < steps.length - 1 && (
                 <div
-                  className={`w-24 md:w-32 h-0.5 mx-4 -mt-6 ${
+                  className={`w-12 sm:w-24 md:w-32 h-0.5 mx-2 sm:mx-4 -mt-6 ${
                     isCompleted ? "bg-success" : "bg-muted"
                   }`}
                 />
