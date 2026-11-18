@@ -85,9 +85,9 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Columna izquierda — info */}
-        <div className="col-span-1">
+        <div className="md:col-span-1">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
@@ -134,14 +134,14 @@ function RouteComponent() {
         </div>
 
         {/* Columna derecha — historial */}
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                 Historial de Órdenes
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

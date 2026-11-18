@@ -31,6 +31,7 @@ export async function pdfRoutes(fastify: FastifyInstance) {
         const { stream, correlativo } = await generateOrderPdfStream(orderId);
 
         res.header("Content-Type", "application/pdf");
+        res.header("Cross-Origin-Resource-Policy", "cross-origin");
         res.header(
           "Content-Disposition",
           `inline; filename="orden-${correlativo}.pdf"`,

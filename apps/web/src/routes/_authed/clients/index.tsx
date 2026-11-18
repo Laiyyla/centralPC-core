@@ -70,8 +70,8 @@ function ClientsPage() {
       )}
 
       {/* Búsqueda + contador */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="relative flex-1 sm:max-w-md">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre, teléfono, DNI o RUC..."
@@ -97,8 +97,8 @@ function ClientsPage() {
           headers={["Nombre", "Teléfono", "DNI", "RUC", "Acciones"]}
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <Table>
+        <div className="rounded-xl border border-border bg-card overflow-hidden overflow-x-auto">
+          <Table className="min-w-[500px]">
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>

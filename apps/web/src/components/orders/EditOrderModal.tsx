@@ -594,10 +594,10 @@ export function EditOrderModal({
                           {equipo.detalle.map((item, itemIdx) => (
                             <div
                               key={itemIdx}
-                              className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 min-w-0 bg-muted/10 p-1.5 rounded border"
+                              className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 bg-muted/10 p-2 sm:p-1.5 rounded border"
                             >
                               <Input
-                                className="text-sm min-w-0 bg-background"
+                                className="text-sm min-w-0 bg-background flex-1"
                                 placeholder="Nombre o servicio"
                                 disabled={!!item.item_id}
                                 value={item.nombre_personalizado ?? ""}
@@ -609,49 +609,51 @@ export function EditOrderModal({
                                   setEquipos(updated);
                                 }}
                               />
-                              <Input
-                                type="number"
-                                className="w-16 text-sm bg-background"
-                                placeholder="Cant."
-                                min={1}
-                                value={item.cantidad}
-                                onChange={(e) => {
-                                  const updated = [...equipos];
-                                  updated[eqIdx].detalle[itemIdx].cantidad =
-                                    Number(e.target.value) || 1;
-                                  setEquipos(updated);
-                                }}
-                              />
-                              <Input
-                                type="number"
-                                step="0.50"
-                                className="w-24 text-sm bg-background"
-                                placeholder="S/ Precio"
-                                value={item.precio_unitario}
-                                onChange={(e) => {
-                                  const updated = [...equipos];
-                                  updated[eqIdx].detalle[
-                                    itemIdx
-                                  ].precio_unitario =
-                                    Number(e.target.value) || 0;
-                                  setEquipos(updated);
-                                }}
-                              />
-                              <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
-                                S/{" "}
-                                {(item.precio_unitario * item.cantidad).toFixed(
-                                  2,
-                                )}
-                              </span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-muted-foreground hover:text-destructive shrink-0"
-                                onClick={() => handleQuitarItem(eqIdx, itemIdx)}
-                              >
-                                <Trash2 className="size-3.5" />
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  className="w-16 text-sm bg-background"
+                                  placeholder="Cant."
+                                  min={1}
+                                  value={item.cantidad}
+                                  onChange={(e) => {
+                                    const updated = [...equipos];
+                                    updated[eqIdx].detalle[itemIdx].cantidad =
+                                      Number(e.target.value) || 1;
+                                    setEquipos(updated);
+                                  }}
+                                />
+                                <Input
+                                  type="number"
+                                  step="0.50"
+                                  className="w-24 text-sm bg-background"
+                                  placeholder="S/ Precio"
+                                  value={item.precio_unitario}
+                                  onChange={(e) => {
+                                    const updated = [...equipos];
+                                    updated[eqIdx].detalle[
+                                      itemIdx
+                                    ].precio_unitario =
+                                      Number(e.target.value) || 0;
+                                    setEquipos(updated);
+                                  }}
+                                />
+                                <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
+                                  S/{" "}
+                                  {(item.precio_unitario * item.cantidad).toFixed(
+                                    2,
+                                  )}
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-8 text-muted-foreground hover:text-destructive shrink-0"
+                                  onClick={() => handleQuitarItem(eqIdx, itemIdx)}
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -763,10 +765,10 @@ export function EditOrderModal({
                       {detalleSuelto.map((item, itemIdx) => (
                         <div
                           key={itemIdx}
-                          className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 min-w-0 bg-muted/10 p-1.5 rounded border"
+                          className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 bg-muted/10 p-2 sm:p-1.5 rounded border"
                         >
                           <Input
-                            className="text-sm min-w-0 bg-background"
+                            className="text-sm min-w-0 bg-background flex-1"
                             placeholder="Nombre o descripción"
                             disabled={!!item.item_id}
                             value={item.nombre_personalizado ?? ""}
@@ -777,47 +779,49 @@ export function EditOrderModal({
                               setDetalleSuelto(updated);
                             }}
                           />
-                          <Input
-                            type="number"
-                            className="w-16 text-sm bg-background"
-                            placeholder="Cant."
-                            min={1}
-                            value={item.cantidad}
-                            onChange={(e) => {
-                              const updated = [...detalleSuelto];
-                              updated[itemIdx].cantidad =
-                                Number(e.target.value) || 1;
-                              setDetalleSuelto(updated);
-                            }}
-                          />
-                          <Input
-                            type="number"
-                            step="0.50"
-                            className="w-24 text-sm bg-background"
-                            placeholder="S/ Precio"
-                            value={item.precio_unitario}
-                            onChange={(e) => {
-                              const updated = [...detalleSuelto];
-                              updated[itemIdx].precio_unitario =
-                                Number(e.target.value) || 0;
-                              setDetalleSuelto(updated);
-                            }}
-                          />
-                          <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
-                            S/{" "}
-                            {(item.precio_unitario * item.cantidad).toFixed(
-                              2,
-                            )}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 text-muted-foreground hover:text-destructive shrink-0"
-                            onClick={() => handleQuitarItemSuelto(itemIdx)}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              className="w-16 text-sm bg-background"
+                              placeholder="Cant."
+                              min={1}
+                              value={item.cantidad}
+                              onChange={(e) => {
+                                const updated = [...detalleSuelto];
+                                updated[itemIdx].cantidad =
+                                  Number(e.target.value) || 1;
+                                setDetalleSuelto(updated);
+                              }}
+                            />
+                            <Input
+                              type="number"
+                              step="0.50"
+                              className="w-24 text-sm bg-background"
+                              placeholder="S/ Precio"
+                              value={item.precio_unitario}
+                              onChange={(e) => {
+                                const updated = [...detalleSuelto];
+                                updated[itemIdx].precio_unitario =
+                                  Number(e.target.value) || 0;
+                                setDetalleSuelto(updated);
+                              }}
+                            />
+                            <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
+                              S/{" "}
+                              {(item.precio_unitario * item.cantidad).toFixed(
+                                2,
+                              )}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 text-muted-foreground hover:text-destructive shrink-0"
+                              onClick={() => handleQuitarItemSuelto(itemIdx)}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

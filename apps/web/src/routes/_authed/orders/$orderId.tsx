@@ -5,7 +5,7 @@ import { trpc } from "@/trpc/client";
 import { useAuthUser } from "@/context/auth-context";
 import { openOrderPdf, fetchOrderPdfBlob } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,11 +48,13 @@ import {
   HistoryIcon,
   ClockIcon,
   FileTextIcon,
+  EyeIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EditOrderModal } from "@/components/orders/EditOrderModal";
 import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/components/hooks/use-mobile";
 
 export const Route = createFileRoute("/_authed/orders/$orderId")({
   component: RouteComponent,
@@ -62,6 +64,7 @@ export const Route = createFileRoute("/_authed/orders/$orderId")({
 });
 
 function RouteComponent() {
+  const isMobile = useIsMobile();
   const { orderId } = useParams({ from: "/_authed/orders/$orderId" });
   const { user } = useAuthUser();
 
@@ -354,11 +357,47 @@ function RouteComponent() {
                 </p>
               </div>
             ) : previewBlobUrl ? (
-              <iframe
-                src={previewBlobUrl}
-                title="Vista previa de orden de servicio"
-                className="w-full h-full rounded-md border-0 bg-white"
-              />
+              isMobile ? (
+                <div className="flex flex-col items-center justify-center p-6 text-center max-w-sm gap-4">
+                  <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <FileTextIcon className="size-8" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-foreground text-base">
+                      Documento PDF listo
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Los navegadores móviles requieren abrir el documento en su visor nativo o descargarlo.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2.5 w-full pt-2">
+                    <a
+                      href={previewBlobUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonVariants({ className: "w-full" })}
+                    >
+                      <EyeIcon className="size-4 mr-2" />
+                      Abrir en visor del celular
+                    </a>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleDownloadPdf}
+                      disabled={isDownloadingPdf}
+                    >
+                      <DownloadIcon className="size-4 mr-2" />
+                      {isDownloadingPdf ? "Descargando..." : "Descargar PDF"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <iframe
+                  src={previewBlobUrl}
+                  title="Vista previa de orden de servicio"
+                  className="w-full h-full rounded-md border-0 bg-white"
+                />
+              )
             ) : (
               <p className="text-sm text-muted-foreground">
                 No se pudo cargar el documento.
@@ -378,8 +417,8 @@ function RouteComponent() {
               </Button>
             </Link>
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">
                   Orden #{String(data.id).padStart(5, "0")}
                 </h1>
                 {data.correlativo && (
@@ -548,7 +587,7 @@ function RouteComponent() {
                   Información del Cliente
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground mb-1">
                     Nombre completo
@@ -630,6 +669,7 @@ function RouteComponent() {
                     )}
 
                     {eq.detalle && eq.detalle.length > 0 && (
+                      <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -664,6 +704,7 @@ function RouteComponent() {
                           ))}
                         </TableBody>
                       </Table>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -674,6 +715,7 @@ function RouteComponent() {
                     <span className="text-sm font-semibold text-muted-foreground">
                       Ítems adicionales
                     </span>
+                    <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -704,6 +746,7 @@ function RouteComponent() {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
                   </div>
                 )}
               </CardContent>

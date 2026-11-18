@@ -74,6 +74,7 @@ export function CatalogItemSelector({ onDetalleChange }: ItemInputProp) {
         },
       ]);
     }
+    setSearch("");
   }
 
   function actualizarPrecio(item_id: number, nuevoPrecio: number) {

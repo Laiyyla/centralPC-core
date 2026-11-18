@@ -53,6 +53,7 @@ export const createOrderSchema = z
 
 export const listOrdersSchema = z
   .object({
+    search: z.string().max(100).optional(),
     estado: estadoOrderEnum.optional(),
     cliente_id: z.number().optional(),
     encargado_id: z.number().optional(),

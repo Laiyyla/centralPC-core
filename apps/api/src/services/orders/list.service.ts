@@ -3,6 +3,8 @@ import {
   orderTable,
   eq,
   and,
+  or,
+  sql,
   gte,
   lte,
   isNull,
@@ -14,6 +16,7 @@ export class ListOrdersService {
 
   async execute(input: ListOrdersInput) {
     const {
+      search,
       estado,
       cliente_id,
       encargado_id,
@@ -25,6 +28,24 @@ export class ListOrdersService {
     } = input ?? { limit: 20, offset: 0 };
 
     const conditions = [];
+
+    if (search && search.trim().length > 0) {
+      const normalized = search
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const sanitized = normalized.replace(/[%_\\]/g, "\\$&");
+      const pattern = `%${sanitized}%`;
+
+      conditions.push(
+        or(
+          sql`${orderTable.correlativo}::text ILIKE ${pattern}`,
+          sql`${orderTable.id}::text ILIKE ${pattern}`,
+          sql`EXISTS (SELECT 1 FROM clients c WHERE c.id = ${orderTable.cliente_id} AND (translate(c.nombre, 'áéíóúÁÉÍÓÚüÜ', 'aeiouAEIOUuU') ILIKE ${pattern} OR c.telefono ILIKE ${pattern}))`,
+          sql`EXISTS (SELECT 1 FROM users u WHERE u.id = ${orderTable.encargado_id} AND translate(u.nombre, 'áéíóúÁÉÍÓÚüÜ', 'aeiouAEIOUuU') ILIKE ${pattern})`,
+        )!,
+      );
+    }
 
     if (estado) {
       conditions.push(eq(orderTable.estado, estado));

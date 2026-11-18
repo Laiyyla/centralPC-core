@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { trpc } from "@/trpc/client";
 import { openOrderPdf } from "@/lib/api";
 import { useAuthUser } from "@/context/auth-context";
@@ -71,6 +71,7 @@ function RouteComponent() {
   const { data, isLoading, isError, error } = trpc.orders.list.useQuery({
     limit: pageSize,
     offset: page * pageSize,
+    search: debouncedSearch.trim() || undefined,
     estado: statusFilter !== "todos" ? (statusFilter as any) : undefined,
     solo_sin_asignar: techFilter === "sin_asignar" ? true : undefined,
     encargado_id:
@@ -81,29 +82,7 @@ function RouteComponent() {
           : undefined,
   });
 
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    const q = debouncedSearch
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    if (!q) return data;
-    const normalize = (str: string) =>
-      str
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    return data.filter(
-      (o) =>
-        String(o.id).includes(q) ||
-        String(o.correlativo ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        normalize(o.cliente?.nombre ?? "").includes(q) ||
-        normalize(o.encargado?.nombre ?? "").includes(q),
-    );
-  }, [data, debouncedSearch]);
+  const orders = data ?? [];
 
   async function handlePdf(ordenId: number) {
     try {
@@ -118,16 +97,16 @@ function RouteComponent() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             Órdenes de Servicio
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Gestiona, asigna técnicos y monitorea el avance de atención técnica.
           </p>
         </div>
-        <Link to="/orders/new">
+        <Link to="/orders/new" className="shrink-0">
           <Button>
             <PlusCircle />
             Nueva Orden
@@ -142,7 +121,10 @@ function RouteComponent() {
           <Input
             placeholder="Buscar por ID, correlativo, cliente o técnico..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
             className="pl-9"
           />
         </div>
@@ -222,8 +204,8 @@ function RouteComponent() {
           ]}
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <Table>
+        <div className="rounded-xl border border-border bg-card overflow-hidden overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Orden / N°</TableHead>
@@ -236,7 +218,7 @@ function RouteComponent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.length === 0 ? (
+              {orders.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={7} className="p-0">
                     <EmptyState
@@ -256,7 +238,10 @@ function RouteComponent() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSearch("")}
+                            onClick={() => {
+                              setSearch("");
+                              setPage(0);
+                            }}
                           >
                             Limpiar búsqueda
                           </Button>
@@ -266,7 +251,7 @@ function RouteComponent() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((orden) => (
+                orders.map((orden) => (
                   <TableRow key={orden.id}>
                     {/* Orden / ID */}
                     <TableCell>
@@ -366,7 +351,7 @@ function RouteComponent() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
               <span>
-                Página {page + 1} — {filtered.length} órdenes en vista
+                Página {page + 1} — {orders.length} órdenes en vista
               </span>
               <div className="flex items-center gap-1.5 text-xs">
                 <span>Por pág:</span>
