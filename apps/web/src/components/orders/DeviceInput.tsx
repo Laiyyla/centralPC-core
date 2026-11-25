@@ -50,11 +50,7 @@ export function DeviceInput({
   onEquiposChange,
 }: DeviceInputProps) {
   const [selectorKey, setSelectorKey] = useState(0);
-  const [nuevoEquipo, setNuevoEquipo] = useState<{
-    tipo_equipo: TipoEquipo;
-    descripcion: string;
-    detalle: { item_id: number; cantidad: number; precio_unitario: number }[];
-  }>({
+  const [nuevoEquipo, setNuevoEquipo] = useState<EquipoBase>({
     tipo_equipo: tipoEquipoEnum.options[0],
     descripcion: "",
     detalle: [],
@@ -197,11 +193,14 @@ export function DeviceInput({
                               {equipo.detalle.map((d, i) => (
                                 <li
                                   key={i}
-                                  className="text-sm text-muted-foreground flex items-center gap-2"
+                                  className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap"
                                 >
-                                  <span className="size-1.5 rounded-full bg-muted-foreground" />
-                                  Item ID {d.item_id} - x{d.cantidad} - S/.
-                                  {d.precio_unitario.toFixed(2)}
+                                  <span className="size-1.5 rounded-full bg-muted-foreground shrink-0" />
+                                  <span className="font-medium text-foreground">
+                                    {d.nombre_personalizado ?? `Ítem #${d.item_id}`}
+                                  </span>
+                                  <span>• x{d.cantidad}</span>
+                                  <span>• S/ {d.precio_unitario.toFixed(2)}</span>
                                 </li>
                               ))}
                             </ul>
