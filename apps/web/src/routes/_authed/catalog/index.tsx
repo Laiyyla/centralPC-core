@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,30 +51,17 @@ export const Route = createFileRoute("/_authed/catalog/")({
 function CatalogPage() {
   const [search, setSearch] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState<string>("todos");
+  const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading, isError } = trpc.catalog.list.useQuery({
-    includeInactive: false,
-    limit: 500,
-  });
-
-  const normalize = (str: string) =>
-    str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-
-  const filtrados = useMemo(() => {
-    if (!data) return [];
-    const q = normalize(search.trim());
-    return data.filter((item) => {
-      const matchSearch =
-        !q ||
-        normalize(item.nombre).includes(q) ||
-        normalize(item.tipo_item).includes(q);
-      const matchTipo = tipoFiltro === "todos" || item.tipo_item === tipoFiltro;
-      return matchSearch && matchTipo;
-    });
-  }, [data, search, tipoFiltro]);
+  const { data: filtrados, isLoading, isError } = trpc.catalog.list.useQuery(
+    {
+      search: debouncedSearch.trim() || undefined,
+      tipo: tipoFiltro !== "todos" ? (tipoFiltro as "servicio" | "producto" | "combo") : undefined,
+      includeInactive: false,
+      limit: 500,
+    },
+    { placeholderData: keepPreviousData },
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -125,7 +114,7 @@ function CatalogPage() {
           </SelectContent>
         </Select>
         <span className="text-sm text-muted-foreground shrink-0">
-          {filtrados.length} ítem{filtrados.length !== 1 ? "s" : ""}
+          {filtrados?.length ?? 0} ítem{(filtrados?.length ?? 0) !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -147,7 +136,7 @@ function CatalogPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtrados.length === 0 ? (
+            {!filtrados || filtrados.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={4} className="p-0">
                   <EmptyState
@@ -165,7 +154,7 @@ function CatalogPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtrados.map((item) => {
+              filtrados?.map((item) => {
                 const config = tipoConfig[item.tipo_item];
                 return (
                   <TableRow key={item.id}>
@@ -197,9 +186,9 @@ function CatalogPage() {
           </TableBody>
         </Table>
 
-        {filtrados.length > 0 && (
+        {(filtrados?.length ?? 0) > 0 && (
           <div className="px-4 py-3 border-t text-sm text-muted-foreground">
-            Mostrando {filtrados.length} de {data?.length ?? 0} ítems
+            Mostrando {filtrados?.length ?? 0} ítems
           </div>
         )}
       </div>

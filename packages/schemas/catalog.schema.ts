@@ -31,6 +31,7 @@ export const updateItemSchema = z.object({
 
 export const listItemsSchema = z
   .object({
+    search: z.string().max(100).optional(),
     tipo: itemTypeEnum.optional(),
     includeInactive: z.boolean().default(false).optional(),
     limit: z.number().min(1).max(500).default(50).optional(),

@@ -8,6 +8,8 @@ import {
   gte,
   lte,
   isNull,
+  TRANSLATE_FROM,
+  TRANSLATE_TO,
 } from "@central-pc/database";
 import type { Database } from "../types.js";
 
@@ -41,8 +43,8 @@ export class ListOrdersService {
         or(
           sql`${orderTable.correlativo}::text ILIKE ${pattern}`,
           sql`${orderTable.id}::text ILIKE ${pattern}`,
-          sql`EXISTS (SELECT 1 FROM clients c WHERE c.id = ${orderTable.cliente_id} AND (translate(c.nombre, 'áéíóúÁÉÍÓÚüÜ', 'aeiouAEIOUuU') ILIKE ${pattern} OR c.telefono ILIKE ${pattern}))`,
-          sql`EXISTS (SELECT 1 FROM users u WHERE u.id = ${orderTable.encargado_id} AND translate(u.nombre, 'áéíóúÁÉÍÓÚüÜ', 'aeiouAEIOUuU') ILIKE ${pattern})`,
+          sql`EXISTS (SELECT 1 FROM clients c WHERE c.id = ${orderTable.cliente_id} AND (translate(lower(c.nombre), ${TRANSLATE_FROM}, ${TRANSLATE_TO}) ILIKE ${pattern} OR c.telefono ILIKE ${pattern}))`,
+          sql`EXISTS (SELECT 1 FROM users u WHERE u.id = ${orderTable.encargado_id} AND translate(lower(u.nombre), ${TRANSLATE_FROM}, ${TRANSLATE_TO}) ILIKE ${pattern})`,
         )!,
       );
     }

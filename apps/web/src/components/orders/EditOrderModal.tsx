@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/trpc/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,10 +118,7 @@ export function EditOrderModal({
   const [searches, setSearches] = useState<Record<number, string>>({});
   const [searchDetalleSuelto, setSearchDetalleSuelto] = useState("");
 
-  const { data: catalogoItems } = trpc.catalog.list.useQuery(
-    { includeInactive: false },
-    { enabled: open },
-  );
+  const debouncedSearchSuelto = useDebounce(searchDetalleSuelto, 300);
 
   useEffect(() => {
     if (order) {
@@ -355,14 +354,13 @@ export function EditOrderModal({
       0,
     );
 
-  const catalogoFiltradoSuelto =
-    searchDetalleSuelto.trim().length >= 2
-      ? catalogoItems?.filter((item) =>
-          item.nombre
-            ?.toLowerCase()
-            .includes(searchDetalleSuelto.toLowerCase()),
-        )
-      : [];
+  const { data: catalogoFiltradoSuelto } = trpc.catalog.list.useQuery(
+    { search: debouncedSearchSuelto.trim(), limit: 50, includeInactive: false },
+    {
+      enabled: open && debouncedSearchSuelto.trim().length >= 2,
+      placeholderData: keepPreviousData,
+    },
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -404,14 +402,6 @@ export function EditOrderModal({
 
             {equipos.map((equipo, eqIdx) => {
               const currentSearch = searches[eqIdx] ?? "";
-              const catalogoFiltrado =
-                currentSearch.trim().length >= 2
-                  ? catalogoItems?.filter((item) =>
-                      item.nombre
-                        ?.toLowerCase()
-                        .includes(currentSearch.toLowerCase()),
-                    )
-                  : [];
 
               return (
                 <Card key={eqIdx} className="bg-surface border">
@@ -487,92 +477,15 @@ export function EditOrderModal({
                     <Separator />
 
                     {/* Buscador de catálogo para este equipo */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold text-muted-foreground uppercase">
-                          Buscar en Catálogo de Productos y Servicios
-                        </Label>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-primary h-7"
-                          onClick={() => handleAgregarItemPersonalizado(eqIdx)}
-                        >
-                          <Plus className="size-3 mr-1" />
-                          Ítem Personalizado
-                        </Button>
-                      </div>
-
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                        <Input
-                          value={currentSearch}
-                          onChange={(e) =>
-                            setSearches((prev) => ({
-                              ...prev,
-                              [eqIdx]: e.target.value,
-                            }))
-                          }
-                          placeholder="Escribe al menos 2 letras para buscar repuestos o servicios del catálogo..."
-                          className="pl-9 text-sm"
-                        />
-                      </div>
-
-                      {/* Resultados de búsqueda */}
-                      {currentSearch.trim().length >= 2 && (
-                        <div className="rounded-md border bg-muted/20 max-h-44 overflow-y-auto">
-                          {catalogoFiltrado?.length === 0 ? (
-                            <p className="p-2.5 text-xs text-muted-foreground text-center">
-                              No se encontraron ítems en el catálogo con "
-                              {currentSearch}".
-                            </p>
-                          ) : (
-                            <ul className="divide-y text-sm">
-                              {catalogoFiltrado?.map((catItem) => {
-                                const badgeCfg =
-                                  tipoItemBadgeConfig[catItem.tipo_item];
-                                return (
-                                  <li
-                                    key={catItem.id}
-                                    onClick={() =>
-                                      handleAgregarItemCatalogo(eqIdx, catItem)
-                                    }
-                                    className="flex items-center justify-between p-2 hover:bg-primary/10 cursor-pointer transition-colors"
-                                  >
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <Package className="size-3.5 text-muted-foreground shrink-0" />
-                                      <span className="font-medium text-xs truncate">
-                                        {catItem.nombre}
-                                      </span>
-                                      <Badge
-                                        variant="outline"
-                                        className={`text-[10px] px-1 py-0 ${badgeCfg?.className}`}
-                                      >
-                                        {badgeCfg?.label ?? catItem.tipo_item}
-                                      </Badge>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                      <span className="text-xs font-bold text-primary">
-                                        S/{" "}
-                                        {Number(catItem.precio_ref).toFixed(2)}
-                                      </span>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="size-6"
-                                      >
-                                        <Plus className="size-3.5" />
-                                      </Button>
-                                    </div>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <EquipoCatalogSearch
+                      search={currentSearch}
+                      onSearchChange={(val) =>
+                        setSearches((prev) => ({ ...prev, [eqIdx]: val }))
+                      }
+                      onSelectItem={(item) => handleAgregarItemCatalogo(eqIdx, item)}
+                      onAddCustom={() => handleAgregarItemPersonalizado(eqIdx)}
+                      open={open}
+                    />
 
                     {/* Lista de ítems/servicios del equipo */}
                     <div className="space-y-2 pt-1">
@@ -701,15 +614,15 @@ export function EditOrderModal({
                   </div>
 
                   {/* Resultados de búsqueda */}
-                  {searchDetalleSuelto.trim().length >= 2 && (
+                  {debouncedSearchSuelto.trim().length >= 2 && (
                     <div className="rounded-md border bg-muted/20 max-h-44 overflow-y-auto">
-                      {catalogoFiltradoSuelto?.length === 0 ? (
+                      {!catalogoFiltradoSuelto || catalogoFiltradoSuelto.length === 0 ? (
                         <p className="p-2.5 text-xs text-muted-foreground text-center">
                           No se encontraron ítems en el catálogo con "{searchDetalleSuelto}".
                         </p>
                       ) : (
                         <ul className="divide-y text-sm">
-                          {catalogoFiltradoSuelto?.map((catItem) => {
+                          {catalogoFiltradoSuelto.map((catItem) => {
                             const badgeCfg =
                               tipoItemBadgeConfig[catItem.tipo_item];
                             return (
@@ -860,5 +773,103 @@ export function EditOrderModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EquipoCatalogSearch({
+  search,
+  onSearchChange,
+  onSelectItem,
+  onAddCustom,
+  open,
+}: {
+  search: string;
+  onSearchChange: (val: string) => void;
+  onSelectItem: (item: { id: number; nombre: string; precio_ref: string | number }) => void;
+  onAddCustom: () => void;
+  open: boolean;
+}) {
+  const debouncedSearch = useDebounce(search, 300);
+
+  const { data: catalogoFiltrado } = trpc.catalog.list.useQuery(
+    { search: debouncedSearch.trim(), limit: 50, includeInactive: false },
+    {
+      enabled: open && debouncedSearch.trim().length >= 2,
+      placeholderData: keepPreviousData,
+    },
+  );
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase">
+          Buscar en Catálogo de Productos y Servicios
+        </Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-xs text-primary h-7"
+          onClick={onAddCustom}
+        >
+          <Plus className="size-3 mr-1" />
+          Ítem Personalizado
+        </Button>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Escribe al menos 2 letras para buscar repuestos o servicios del catálogo..."
+          className="pl-9 text-sm"
+        />
+      </div>
+
+      {debouncedSearch.trim().length >= 2 && (
+        <div className="rounded-md border bg-muted/20 max-h-44 overflow-y-auto">
+          {!catalogoFiltrado || catalogoFiltrado.length === 0 ? (
+            <p className="p-2.5 text-xs text-muted-foreground text-center">
+              No se encontraron ítems en el catálogo con "{search}".
+            </p>
+          ) : (
+            <ul className="divide-y text-sm">
+              {catalogoFiltrado.map((catItem) => {
+                const badgeCfg = tipoItemBadgeConfig[catItem.tipo_item];
+                return (
+                  <li
+                    key={catItem.id}
+                    onClick={() => onSelectItem(catItem)}
+                    className="flex items-center justify-between p-2 hover:bg-primary/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Package className="size-3.5 text-muted-foreground shrink-0" />
+                      <span className="font-medium text-xs truncate">
+                        {catItem.nombre}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] px-1 py-0 ${badgeCfg?.className}`}
+                      >
+                        {badgeCfg?.label ?? catItem.tipo_item}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-bold text-primary">
+                        S/ {Number(catItem.precio_ref).toFixed(2)}
+                      </span>
+                      <Button size="icon" variant="ghost" className="size-6">
+                        <Plus className="size-3.5" />
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

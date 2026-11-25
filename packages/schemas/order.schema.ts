@@ -19,12 +19,17 @@ export const estadoOrderEnum = z.enum([
   "ANULADA",
 ]);
 
-export const detalleItemSchema = z.object({
-  item_id: z.number().optional(),
-  nombre_personalizado: z.string().optional(),
-  precio_unitario: z.number().nonnegative(),
-  cantidad: z.number().min(1),
-});
+export const detalleItemSchema = z
+  .object({
+    item_id: z.number().optional(),
+    nombre_personalizado: z.string().min(1).max(255).optional(),
+    precio_unitario: z.number().nonnegative(),
+    cantidad: z.number().min(1),
+  })
+  .refine(
+    (d) => !!d.item_id !== !!d.nombre_personalizado,
+    { message: "Debe tener item_id o nombre_personalizado, pero no ambos ni ninguno" },
+  );
 
 export const equipoSchema = z.object({
   tipo_equipo: tipoEquipoEnum,

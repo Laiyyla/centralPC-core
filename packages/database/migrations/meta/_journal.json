@@ -29,6 +29,13 @@
       "when": 1793381274976,
       "tag": "0003_keen_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795795200000,
+      "tag": "0004_catalog_search_index",
+      "breakpoints": true
     }
   ]
 }
