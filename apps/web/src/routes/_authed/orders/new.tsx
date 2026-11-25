@@ -152,7 +152,26 @@ function RouteComponent() {
       </div>
 
       {/* Stepper */}
-      <div className="flex items-center justify-center gap-0 py-4">
+      {/* Mobile Stepper (< sm): barra de progreso compacta */}
+      <div className="sm:hidden space-y-2 py-2">
+        <div className="flex items-center justify-between text-xs font-semibold">
+          <span className="text-primary">
+            Paso {currentStep} de {steps.length}: {steps[currentStep - 1].label}
+          </span>
+          <span className="text-muted-foreground">
+            {Math.round((currentStep / steps.length) * 100)}%
+          </span>
+        </div>
+        <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+          <div
+            className="bg-primary h-full transition-all duration-300"
+            style={{ width: `${(currentStep / steps.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Desktop Stepper (>= sm): círculos y conectores */}
+      <div className="hidden sm:flex items-center justify-center gap-0 py-4">
         {steps.map((step, index) => {
           const Icon = step.icon;
           const isActive = currentStep === step.number;
@@ -325,7 +344,10 @@ function RouteComponent() {
         <div className="flex items-center gap-3">
           {currentStep < 3 ? (
             <Button type="button" onClick={handleNext} disabled={isLoading}>
-              Siguiente: {steps[currentStep].label}
+              <span className="hidden sm:inline">
+                Siguiente: {steps[currentStep].label}
+              </span>
+              <span className="sm:hidden">Siguiente</span>
               <ArrowRight className="size-4 ml-1" />
             </Button>
           ) : (

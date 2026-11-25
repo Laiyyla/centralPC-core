@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -364,14 +363,14 @@ export function EditOrderModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+      <DialogContent className="w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:w-[95vw] rounded-none sm:rounded-xl p-0 flex flex-col overflow-hidden">
+        <DialogHeader className="p-3 sm:p-5 border-b shrink-0 bg-surface">
+          <DialogTitle className="text-base sm:text-xl font-bold">
             Editar Orden #{order.id}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 py-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-5 space-y-4 sm:space-y-6">
           {/* Observaciones generales */}
           <div className="space-y-2">
             <Label className="font-semibold">Observaciones Generales</Label>
@@ -385,7 +384,7 @@ export function EditOrderModal({
 
           {/* Equipos */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <Label className="font-semibold text-base">
                 Equipos y Servicios ({equipos.length})
               </Label>
@@ -489,7 +488,7 @@ export function EditOrderModal({
 
                     {/* Lista de ítems/servicios del equipo */}
                     <div className="space-y-2 pt-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <span className="text-xs font-semibold text-foreground">
                           Ítems asignados a este equipo ({equipo.detalle.length}
                           )
@@ -507,11 +506,12 @@ export function EditOrderModal({
                           {equipo.detalle.map((item, itemIdx) => (
                             <div
                               key={itemIdx}
-                              className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 bg-muted/10 p-2 sm:p-1.5 rounded border"
+                              className="flex flex-col gap-2 bg-muted/20 p-2.5 rounded-lg border"
                             >
+                              {/* Fila 1: Nombre (ancho completo) */}
                               <Input
-                                className="text-sm min-w-0 bg-background flex-1"
-                                placeholder="Nombre o servicio"
+                                className="text-sm bg-background w-full"
+                                placeholder="Nombre del servicio o repuesto"
                                 disabled={!!item.item_id}
                                 value={item.nombre_personalizado ?? ""}
                                 onChange={(e) => {
@@ -522,49 +522,63 @@ export function EditOrderModal({
                                   setEquipos(updated);
                                 }}
                               />
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  className="w-16 text-sm bg-background"
-                                  placeholder="Cant."
-                                  min={1}
-                                  value={item.cantidad}
-                                  onChange={(e) => {
-                                    const updated = [...equipos];
-                                    updated[eqIdx].detalle[itemIdx].cantidad =
-                                      Number(e.target.value) || 1;
-                                    setEquipos(updated);
-                                  }}
-                                />
-                                <Input
-                                  type="number"
-                                  step="0.50"
-                                  className="w-24 text-sm bg-background"
-                                  placeholder="S/ Precio"
-                                  value={item.precio_unitario}
-                                  onChange={(e) => {
-                                    const updated = [...equipos];
-                                    updated[eqIdx].detalle[
-                                      itemIdx
-                                    ].precio_unitario =
-                                      Number(e.target.value) || 0;
-                                    setEquipos(updated);
-                                  }}
-                                />
-                                <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
+
+                              {/* Fila 2: Cantidad, Precio, Subtotal, Eliminar */}
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    Cant:
+                                  </span>
+                                  <Input
+                                    type="number"
+                                    min={1}
+                                    inputMode="numeric"
+                                    className="w-14 h-8 text-xs bg-background text-center px-1"
+                                    value={item.cantidad}
+                                    onChange={(e) => {
+                                      const updated = [...equipos];
+                                      updated[eqIdx].detalle[itemIdx].cantidad =
+                                        Number(e.target.value) || 1;
+                                      setEquipos(updated);
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    S/
+                                  </span>
+                                  <Input
+                                    type="number"
+                                    step="0.50"
+                                    inputMode="decimal"
+                                    className="w-20 h-8 text-xs bg-background text-right px-2"
+                                    value={item.precio_unitario}
+                                    onChange={(e) => {
+                                      const updated = [...equipos];
+                                      updated[eqIdx].detalle[
+                                        itemIdx
+                                      ].precio_unitario =
+                                        Number(e.target.value) || 0;
+                                      setEquipos(updated);
+                                    }}
+                                  />
+                                </div>
+                                <span className="text-xs sm:text-sm font-semibold text-right whitespace-nowrap text-foreground">
                                   S/{" "}
-                                  {(item.precio_unitario * item.cantidad).toFixed(
-                                    2,
-                                  )}
+                                  {(
+                                    item.precio_unitario * item.cantidad
+                                  ).toFixed(2)}
                                 </span>
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="icon"
                                   className="size-8 text-muted-foreground hover:text-destructive shrink-0"
-                                  onClick={() => handleQuitarItem(eqIdx, itemIdx)}
+                                  onClick={() =>
+                                    handleQuitarItem(eqIdx, itemIdx)
+                                  }
                                 >
-                                  <Trash2 className="size-3.5" />
+                                  <Trash2 className="size-4" />
                                 </Button>
                               </div>
                             </div>
@@ -580,7 +594,7 @@ export function EditOrderModal({
 
           {/* Ítems Sueltos / Adicionales */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <Label className="font-semibold text-base flex items-center gap-2">
                 <Package className="size-4 text-primary" />
                 Ítems Sueltos y Adicionales ({detalleSuelto.length})
@@ -678,10 +692,11 @@ export function EditOrderModal({
                       {detalleSuelto.map((item, itemIdx) => (
                         <div
                           key={itemIdx}
-                          className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 bg-muted/10 p-2 sm:p-1.5 rounded border"
+                          className="flex flex-col gap-2 bg-muted/20 p-2.5 rounded-lg border"
                         >
+                          {/* Fila 1: Nombre (ancho completo) */}
                           <Input
-                            className="text-sm min-w-0 bg-background flex-1"
+                            className="text-sm bg-background w-full"
                             placeholder="Nombre o descripción"
                             disabled={!!item.item_id}
                             value={item.nombre_personalizado ?? ""}
@@ -692,38 +707,50 @@ export function EditOrderModal({
                               setDetalleSuelto(updated);
                             }}
                           />
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              className="w-16 text-sm bg-background"
-                              placeholder="Cant."
-                              min={1}
-                              value={item.cantidad}
-                              onChange={(e) => {
-                                const updated = [...detalleSuelto];
-                                updated[itemIdx].cantidad =
-                                  Number(e.target.value) || 1;
-                                setDetalleSuelto(updated);
-                              }}
-                            />
-                            <Input
-                              type="number"
-                              step="0.50"
-                              className="w-24 text-sm bg-background"
-                              placeholder="S/ Precio"
-                              value={item.precio_unitario}
-                              onChange={(e) => {
-                                const updated = [...detalleSuelto];
-                                updated[itemIdx].precio_unitario =
-                                  Number(e.target.value) || 0;
-                                setDetalleSuelto(updated);
-                              }}
-                            />
-                            <span className="text-sm font-semibold w-20 text-right whitespace-nowrap text-foreground">
+
+                          {/* Fila 2: Cantidad, Precio, Subtotal, Eliminar */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">
+                                Cant:
+                              </span>
+                              <Input
+                                type="number"
+                                min={1}
+                                inputMode="numeric"
+                                className="w-14 h-8 text-xs bg-background text-center px-1"
+                                value={item.cantidad}
+                                onChange={(e) => {
+                                  const updated = [...detalleSuelto];
+                                  updated[itemIdx].cantidad =
+                                    Number(e.target.value) || 1;
+                                  setDetalleSuelto(updated);
+                                }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">
+                                S/
+                              </span>
+                              <Input
+                                type="number"
+                                step="0.50"
+                                inputMode="decimal"
+                                className="w-20 h-8 text-xs bg-background text-right px-2"
+                                value={item.precio_unitario}
+                                onChange={(e) => {
+                                  const updated = [...detalleSuelto];
+                                  updated[itemIdx].precio_unitario =
+                                    Number(e.target.value) || 0;
+                                  setDetalleSuelto(updated);
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs sm:text-sm font-semibold text-right whitespace-nowrap text-foreground">
                               S/{" "}
-                              {(item.precio_unitario * item.cantidad).toFixed(
-                                2,
-                              )}
+                              {(
+                                item.precio_unitario * item.cantidad
+                              ).toFixed(2)}
                             </span>
                             <Button
                               type="button"
@@ -732,7 +759,7 @@ export function EditOrderModal({
                               className="size-8 text-muted-foreground hover:text-destructive shrink-0"
                               onClick={() => handleQuitarItemSuelto(itemIdx)}
                             >
-                              <Trash2 className="size-3.5" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </div>
                         </div>
@@ -744,16 +771,6 @@ export function EditOrderModal({
             </Card>
           </div>
 
-          {/* Resumen Total */}
-          <div className="flex items-center justify-between bg-muted/40 p-4 rounded-lg border">
-            <span className="font-semibold text-foreground">
-              Nuevo Total Calculado:
-            </span>
-            <span className="text-xl font-bold text-primary">
-              S/ {totalCalculado.toFixed(2)}
-            </span>
-          </div>
-
           {updateMutation.isError && (
             <Alert variant="destructive">
               <AlertDescription>
@@ -763,14 +780,32 @@ export function EditOrderModal({
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button disabled={updateMutation.isPending} onClick={handleSave}>
-            {updateMutation.isPending ? "Guardando..." : "Guardar Cambios"}
-          </Button>
-        </DialogFooter>
+        <div className="p-3 sm:p-4 border-t shrink-0 bg-surface flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-xs text-muted-foreground sm:text-sm font-medium">
+              Total:
+            </span>
+            <span className="text-base sm:text-xl font-bold text-primary">
+              S/ {totalCalculado.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              disabled={updateMutation.isPending}
+              onClick={handleSave}
+            >
+              {updateMutation.isPending ? "Guardando..." : "Guardar"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -801,7 +836,7 @@ function EquipoCatalogSearch({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <Label className="text-xs font-semibold text-muted-foreground uppercase">
           Buscar en Catálogo de Productos y Servicios
         </Label>
