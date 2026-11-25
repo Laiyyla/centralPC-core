@@ -70,16 +70,16 @@ export function ClientSelector({
   if (selectedClient !== null) {
     return (
       <div className="rounded-lg border bg-surface p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <User className="size-5 text-primary" />
             </div>
-            <div>
-              <p className="font-medium text-foreground">
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-foreground truncate text-sm sm:text-base">
                 {selectedClient.nombre}
               </p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                 <Phone className="size-3" />
                 {selectedClient.telefono}
               </p>
@@ -91,6 +91,7 @@ export function ClientSelector({
             onClick={() => {
               onClientSelect(null);
             }}
+            className="shrink-0"
           >
             <X className="size-4 mr-1" />
             Cambiar
@@ -184,9 +185,10 @@ export function ClientSelector({
             type="button"
             variant="outline"
             onClick={() => setModoCrear(true)}
+            className="shrink-0"
           >
-            <Plus className="size-4 mr-1" />
-            Nuevo Cliente
+            <Plus className="size-4 sm:mr-1" />
+            <span className="hidden sm:inline">Nuevo Cliente</span>
           </Button>
         </div>
       </div>

@@ -93,8 +93,8 @@ export function DeviceInput({
           </CardTitle>
         </CardHeader>
         <Separator />
-        <CardContent className="pt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="p-3 sm:p-4 sm:pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Tipo de Equipo</Label>
               <Select
@@ -173,7 +173,7 @@ export function DeviceInput({
               const config = tipoEquipoConfig[equipo.tipo_equipo];
               return (
                 <Card key={index} className="bg-surface">
-                  <CardContent className="pt-4">
+                  <CardContent className="p-3 sm:pt-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
                         <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

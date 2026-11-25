@@ -197,7 +197,7 @@ function AuthedLayout() {
               <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20">
                 {initials}
               </div>
-              <div className="flex flex-col">
+              <div className="hidden md:flex flex-col">
                 <span className="text-sm font-semibold text-foreground leading-tight">
                   {user?.nombre ?? "—"}
                 </span>
@@ -208,7 +208,7 @@ function AuthedLayout() {
             </div>
           </div>
 
-          <main className="p-6">
+          <main className="p-3 sm:p-4 md:p-6">
             <Outlet />
           </main>
         </div>
